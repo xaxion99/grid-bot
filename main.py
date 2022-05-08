@@ -18,7 +18,7 @@ def grid_bot(name):
     print('Load and test the grid.')
     # Create a new grid, load dummy data, and then test against data
     fl = FileLoader()
-    g = Grid(10, 0.155, 0.1775, 50, 4)  # Intervals, Min Price, Max Price, Amount per Interval
+    g = Grid(16, 0.155, 0.1775, 50, 4)  # Intervals, Min Price, Max Price, Amount per Interval
     # g.set_data(fl.load_dummy_data('data1.csv'))
     data = fl.load_data('ndax_data.json')
     g.set_data(data)
@@ -33,25 +33,19 @@ def grid_bot(name):
         'password': PASSWORD
     })
 
-    currencies = ndax.fetch_currencies()
+    # currencies = ndax.fetch_currencies()
     # print(currencies)
-
-    markets = ndax.fetch_markets()
+    # markets = ndax.fetch_markets()
     # print(markets)
-
-    ticker = ndax.fetch_ticker('DOGE/CAD')
+    # ticker = ndax.fetch_ticker('DOGE/CAD')
     # print(ticker)
-
-    ohlcv = ndax.fetch_ohlcv('DOGE/CAD', timeframe='1m', since=1651948200)
+    # ohlcv = ndax.fetch_ohlcv('DOGE/CAD', timeframe='1m', since=1651948200)
     # fl.save_data(ohlcv, 'ndax_data.json')
-
-    balance = ndax.fetch_balance()
+    # balance = ndax.fetch_balance()
     # print(balance)
-
-    fees = ndax.fetch_fees()
+    # fees = ndax.fetch_fees()
     # print(fees)
-
-    deposits = ndax.fetch_deposits()
+    # deposits = ndax.fetch_deposits()
     # print(deposits)
 
 

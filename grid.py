@@ -2,27 +2,28 @@ from file_loader import FileLoader
 
 
 class Grid:
-    data = {}
-    states = {}
-    cash = 100
-    coins = 1000
+    data = {}  # Dictionary to hold any preloaded data
+    states = {}  # Dictionary to store the grid states
+    cash = 100  # Initial fiat for paper trade
+    coins = 1000  # Initial crypto for paper trade
+    fee_rate = 0.002  # Percentage fee rate, NDAX's is 0.2%
 
     def __init__(self, i=0, mn_v=0, mx_v=0, cpi=0, dp=3):
-        self.num_of_intervals = i
-        self.tolerance = dp
-        self.min_val = mn_v
-        self.max_val = mx_v
-        self.mid_val = round((mx_v + mn_v) / 2, dp)
-        self.difference = mx_v - mn_v
+        self.num_of_intervals = i  # Needs to be even
+        self.tolerance = dp  # Number of decimal places to round to
+        self.min_val = mn_v  # Minimum value of grid
+        self.max_val = mx_v  # Maximum value of grid
+        self.mid_val = round((mx_v + mn_v) / 2, dp)  # Mid value of grid
+        self.difference = mx_v - mn_v  # Difference between max and min
         if i != 0:
-            self.amount_per_intervals = round((mx_v - mn_v) / i, dp)
+            self.amount_per_intervals = round((mx_v - mn_v) / i, dp)  # Cash range of interval
         else:
             self.amount_per_intervals = 0
-        self.coins_per_interval = cpi
-        self.state = i / 2
-        self.create_states()
-        self.last_state = self.states[self.state]
-        self.fl = FileLoader()
+        self.coins_per_interval = cpi  # How many of crypto to buy/sell on grid state change
+        self.state = i / 2  # State of the bot, initialize to middle interval
+        self.create_states()  # Generate a list of all the states and there bounds
+        self.last_state = self.states[self.state]  # The previous state, used to check if state has changed
+        self.fl = FileLoader()  # Create a FileLoader object
 
     # Create the grid states which are bounded by stored values
     def create_states(self):
@@ -34,7 +35,7 @@ class Grid:
             arr2.append(val)
             i += 1
         self.states = dict(zip(arr1, arr2))
-        print(self.states)
+        print(f'State Boundaries: {self.states}')
 
     # Get the Dictionary key from the value
     def get_key(self, val):
@@ -82,8 +83,8 @@ class Grid:
             elif float(self.data[val]) >= self.last_state and self.coins >= self.coins_per_interval \
                     and c_state != self.last_state:
                 self.coins -= self.coins_per_interval
-                fees += round(0.002 * amount, self.tolerance)
-                self.cash += round(amount - (0.002 * amount), self.tolerance)
+                fees += round(self.fee_rate * amount, self.tolerance)
+                self.cash += round(amount - (self.fee_rate * amount), self.tolerance)
                 sells += 1
                 array.append({
                     'id': val,
@@ -96,8 +97,8 @@ class Grid:
                 })
             elif float(self.data[val]) < self.last_state and self.cash >= amount and c_state != self.last_state:
                 self.coins += self.coins_per_interval
-                fees += round(0.002 * amount, self.tolerance)
-                self.cash -= round(amount + (0.002 * amount), self.tolerance)
+                fees += round(self.fee_rate * amount, self.tolerance)
+                self.cash -= round(amount + (self.fee_rate * amount), self.tolerance)
                 buys += 1
                 array.append({
                     'id': val,
@@ -120,8 +121,13 @@ class Grid:
                     'next_state': self.states[self.state]
                 })
         print('Min: ' + str(self.min_val) + ', Mid: ' + str(self.mid_val) + ', Max: ' + str(self.max_val))
-        print('Coins: ' + str(self.coins) + ', Cash: ' + str(round(self.cash, self.tolerance)) + ', Fee Paid: ' +
-              str(round(fees, self.tolerance)))
+        print('Coins: ' + str(self.coins) + ', Cash: ' + str(round(self.cash, self.tolerance)))
+        initial_value = round((1000 * self.mid_val) + 100, self.tolerance)
+        final_value = round((self.coins * self.mid_val) + self.cash, self.tolerance)
+        profits = round(final_value - initial_value, self.tolerance)
+        perc_inc = round((profits / initial_value) * 100, self.tolerance)
+        print('Initial Value: ' + str(initial_value) + ', Final Value: ' + str(final_value) + ', Profits: ' +
+              str(profits) + ', % Increase: ' + str(perc_inc) + '% , Fee Paid: ' + str(round(fees, self.tolerance)))
         print('Buys: ' + str(buys) + ', Sells: ' + str(sells) + ', Holds: ' + str(holds))
         self.fl.save_data(array, 'grid_data.json')
 

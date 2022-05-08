@@ -4,8 +4,8 @@ import json
 
 class FileLoader:
 
-    def __init__(self):
-        print('File loader initialized.')
+    # def __init__(self):
+    #     print('File loader initialized.')
 
     # Load dummy data from a CSV
     def load_dummy_data(self, file_path):
