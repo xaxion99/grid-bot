@@ -4,8 +4,8 @@ import json
 
 class FileLoader:
 
-    # def __init__(self):
-    #     print('File loader initialized.')
+    def __init__(self):
+        pass
 
     # Load dummy data from a CSV
     def load_dummy_data(self, file_path):
@@ -20,7 +20,7 @@ class FileLoader:
         print(f'Processed {line_count} data points.')
         c_arr = list(range(1, line_count + 1))
         data = dict(zip(c_arr, d))
-        # d.reverse()
+        # d.reverse()  # These two lines are for if you want to reverse the dummy data set
         # data = dict(zip(c_arr, d))
         return data
 
