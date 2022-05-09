@@ -15,12 +15,14 @@ def grid_bot(name):
     UID = os.getenv('UID')
     LOGIN = os.getenv('LOGIN')
     PASSWORD = os.getenv('PASSWORD')
+
     print('Load and test the grid.')
     # Create a new grid, load dummy data, and then test against data
     fl = FileLoader()
+    # g = Grid(50, 0.155, 0.177, 1, 4)  # Example of bad situation
     g = Grid(18, 0.155, 0.177, 100, 4)  # Intervals, Min Price, Max Price, Amount per Interval
-    # g.set_data(fl.load_dummy_data('data1.csv'))
-    data = fl.load_data('ndax_data_08_May_22.json')
+    # g.set_data(fl.load_dummy_data('data/data1.csv'))
+    data = fl.load_data('data/ndax_data_08_May_22.json')
     g.set_data(data)
     g.simulator()
 
@@ -35,9 +37,9 @@ def grid_bot(name):
 
     # OHLC(V) Candle Retriever
     # ohlcv = ndax.fetch_ohlcv('DOGE/CAD', timeframe='1m', since=1651966200)  # since= uses UNIX time
-    # fl.save_data(ohlcv, 'ndax_data_08_May_22.json')
+    # fl.save_data(ohlcv, 'data/ndax_data_08_May_22.json')
     # Check basic stats of the retrieved data
-    # d = fl.load_data('ndax_data_08_May_22.json')
+    # d = fl.load_data('data/ndax_data_08_May_22.json')
     # print(f'Min: {min(d.values())}')
     # print(f'Mid: {(min(d.values()) + max(d.values())) / 2}')
     # print(f'Max: {max(d.values())}')
