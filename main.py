@@ -1,14 +1,19 @@
-import os
-
 import ccxt
+import os
 from dotenv import load_dotenv
+from gui import GUI
+from tkinter import Tk
 
-from file_loader import FileLoader
-from grid import Grid
+
+def main(login):
+    root = Tk()
+    app = GUI(root, login)
+    root.mainloop()
 
 
-def grid_bot(name):
-    print('Load in environment variables.')
+# Press the green button in the gutter to run the script.
+if __name__ == '__main__':
+    # Load in environment variables from .env file
     load_dotenv()
     APIKEY = os.getenv('APIKEY')
     SECRET = os.getenv('SECRET')
@@ -16,17 +21,7 @@ def grid_bot(name):
     LOGIN = os.getenv('LOGIN')
     PASSWORD = os.getenv('PASSWORD')
 
-    print('Load and test the grid.')
-    # Create a new grid, load dummy data, and then test against data
-    fl = FileLoader()
-    # g = Grid(50, 0.155, 0.177, 1, 4)  # Example of bad situation
-    g = Grid(18, 0.155, 0.177, 100, 4)  # Intervals, Min Price, Max Price, Amount per Interval
-    # g.set_data(fl.load_dummy_data('data/data1.csv'))
-    data = fl.load_data('data/ndax_data_08_May_22.json')
-    g.set_data(data)
-    g.simulator()
-
-    # Load NDAX API access
+    # Create NDAX API access header
     ndax = ccxt.ndax({
         'apiKey': APIKEY,
         'secret': SECRET,
@@ -34,30 +29,7 @@ def grid_bot(name):
         'login': LOGIN,
         'password': PASSWORD
     })
+    print('Successfully loaded in environment variables.')
 
-    # OHLC(V) Candle Retriever
-    # ohlcv = ndax.fetch_ohlcv('DOGE/CAD', timeframe='1m', since=1651966200)  # since= uses UNIX time
-    # fl.save_data(ohlcv, 'data/ndax_data_08_May_22.json')
-    # Check basic stats of the retrieved data
-    # d = fl.load_data('data/ndax_data_08_May_22.json')
-    # print(f'Min: {min(d.values())}')
-    # print(f'Mid: {(min(d.values()) + max(d.values())) / 2}')
-    # print(f'Max: {max(d.values())}')
-
-    # currencies = ndax.fetch_currencies()
-    # print(currencies)
-    # markets = ndax.fetch_markets()
-    # print(markets)
-    # ticker = ndax.fetch_ticker('DOGE/CAD')
-    # print(ticker)
-    # balance = ndax.fetch_balance()
-    # print(balance)
-    # fees = ndax.fetch_fees()
-    # print(fees)
-    # deposits = ndax.fetch_deposits()
-    # print(deposits)
-
-
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    grid_bot('TEST')
+    # Start GUI
+    main(ndax)

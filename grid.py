@@ -1,14 +1,14 @@
 from file_loader import FileLoader
 
 
-class Grid:
+class GridTrade:
     data = {}  # Dictionary to hold any preloaded data
     states = {}  # Dictionary to store the grid states
     cash = 100  # Initial fiat for paper trade
     coins = 1000  # Initial crypto for paper trade
     fee_rate = 0.002  # Percentage fee rate, NDAX's is 0.2%
 
-    def __init__(self, i=0, mn_v=0, mx_v=0, cpi=0, dp=3):
+    def __init__(self, i, mn_v, mx_v, cpi, dp):
         self.num_of_intervals = i  # Needs to be even
         self.tolerance = dp  # Number of decimal places to round to
         self.min_val = mn_v  # Minimum value of grid
@@ -129,7 +129,7 @@ class Grid:
         print('Initial Value: ' + str(initial_value) + ', Final Value: ' + str(final_value) + ', Profits: ' +
               str(profits) + ', % Increase: ' + str(perc_inc) + '% , Fee Paid: ' + str(round(fees, self.tolerance)))
         print('Buys: ' + str(buys) + ', Sells: ' + str(sells) + ', Holds: ' + str(holds))
-        self.fl.save_data(array, 'grid_data.json')
+        self.fl.save_data(array, 'data/grid_data.json')
 
     # Getters
     def get_data(self):
