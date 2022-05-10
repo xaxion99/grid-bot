@@ -47,7 +47,7 @@ class Exchange:
         print(my_trades)
         return my_trades
 
-    def fetch_ohlcv(self, file_path='data/ndax_data_08_May_22.json', pair='DOGE/CAD', tf='1m', since=1651966200):
+    def fetch_ohlcv(self, file_path='data/ndax_data_09_May_22.json', pair='DOGE/CAD', tf='1m', since=1652085000):
         # OHLC(V) Candle Retriever
         ohlcv = self.ndax.fetch_ohlcv(pair, timeframe=tf, since=since)  # since= uses UNIX time
         self.fl.save_data(ohlcv, file_path)

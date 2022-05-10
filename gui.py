@@ -46,8 +46,39 @@ class GUI:
 
         ################################################################################################################
         # Frames
+        self.ohlcvFrame = Frame(master, borderwidth=2, relief=SUNKEN)
+        self.ohlcvFrame.grid(row=1, column=0, sticky=E + W, padx=5, pady=5)
+
+        # Labels
+        self.ol0 = Label(self.ohlcvFrame, text='OHLC(V) Data', justify="center")
+        self.ol0.grid(row=0, column=0, columnspan=2, sticky=E + W)
+        self.ol1 = Label(self.ohlcvFrame, text='File Path:', justify="center")
+        self.ol1.grid(row=1, column=0, sticky=E + W)
+        self.ol2 = Label(self.ohlcvFrame, text='Trading Pair:', justify="center")
+        self.ol2.grid(row=2, column=0, sticky=E + W)
+        self.ol3 = Label(self.ohlcvFrame, text='Time Frequency:', justify="center")
+        self.ol3.grid(row=3, column=0, sticky=E + W)
+        self.ol4 = Label(self.ohlcvFrame, text='Since (UNIX time):', justify="center")
+        self.ol4.grid(row=4, column=0, sticky=E + W)
+
+        # Entries
+        self.oe1 = Entry(self.ohlcvFrame)
+        self.oe1.grid(row=1, column=1, sticky=E + W)
+        self.oe2 = Entry(self.ohlcvFrame)
+        self.oe2.grid(row=2, column=1, sticky=E + W)
+        self.oe3 = Entry(self.ohlcvFrame)
+        self.oe3.grid(row=3, column=1, sticky=E + W)
+        self.oe4 = Entry(self.ohlcvFrame)
+        self.oe4.grid(row=4, column=1, sticky=E + W)
+
+        # Buttons
+        Button(self.ohlcvFrame, text='Get NDAX OHLC(V)', command=self.ohlcv_callback) \
+            .grid(row=5, column=0, columnspan=2, sticky=E + W)
+
+        ################################################################################################################
+        # Frames
         self.gridFrame = Frame(master, borderwidth=2, relief=SUNKEN)
-        self.gridFrame.grid(row=1, column=0, sticky=E + W, padx=5, pady=5)
+        self.gridFrame.grid(row=2, column=0, sticky=E + W, padx=5, pady=5)
 
         # Labels
         self.l0 = Label(self.gridFrame, text='Grid Settings', justify="center")
@@ -134,6 +165,7 @@ class GUI:
         else:
             self.run_paper_simulation(file_path)
 
+    # NDAX Button Callbacks
     def balance_callback(self):
         self.ndax.fetch_balance()
 
@@ -151,6 +183,14 @@ class GUI:
 
     def ticker_callback(self):
         self.ndax.fetch_ticker(self.ne1.get())
+
+    # OHLC(V) Button Callback
+    def ohlcv_callback(self):
+        file_path = self.oe1.get()
+        pair = self.oe2.get()
+        tf = self.oe3.get()
+        since = int(self.oe4.get())
+        self.ndax.fetch_ohlcv(file_path=file_path, pair=pair, tf=tf, since=since)
 
     # Complex Functions
     def create_grid(self, intervals, min_val, max_val, amount_per_int, tolerance):
