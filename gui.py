@@ -25,28 +25,46 @@ class GUI:
         # Labels
         self.nl0 = Label(self.ndaxFrame, text='NDAX Functions', justify="center")
         self.nl0.grid(row=0, column=0, columnspan=5, sticky=E + W)
-        self.nl1 = Label(self.ndaxFrame, text='Trading Pair:', justify="center")
-        self.nl1.grid(row=2, column=0, sticky=E + W)
+        self.nl1 = Label(self.ndaxFrame, text='Currency:', justify="center")
+        self.nl1.grid(row=3, column=0, sticky=E + W)
+        self.nl2 = Label(self.ndaxFrame, text='Trading Pair:', justify="center")
+        self.nl2.grid(row=3, column=2, sticky=E + W)
 
         # Entries
         self.ne1 = Entry(self.ndaxFrame)
-        self.ne1.grid(row=2, column=1, sticky=E + W)
+        self.ne1.grid(row=3, column=1, sticky=E + W)
+        self.ne1 = Entry(self.ndaxFrame)
+        self.ne1.grid(row=3, column=3, sticky=E + W)
 
         # Buttons
         Button(self.ndaxFrame, text='Get NDAX Account', command=self.accounts_callback) \
             .grid(row=1, column=0, sticky=E + W)
-        Button(self.ndaxFrame, text='Get NDAX Balance', command=self.balance_callback)\
+        Button(self.ndaxFrame, text='Get Balance', command=self.balance_callback)\
             .grid(row=1, column=1, sticky=E + W)
-        Button(self.ndaxFrame, text='Get NDAX Currencies', command=self.currencies_callback) \
+        Button(self.ndaxFrame, text='Get Currencies', command=self.currencies_callback) \
             .grid(row=1, column=2, sticky=E + W)
-        Button(self.ndaxFrame, text='Get NDAX Deposits', command=self.deposits_callback) \
+        Button(self.ndaxFrame, text='Get Deposits', command=self.deposits_callback) \
             .grid(row=1, column=3, sticky=E + W)
-        Button(self.ndaxFrame, text='Get NDAX Ledger', command=self.ledger_callback) \
+        Button(self.ndaxFrame, text='Get Ledger', command=self.ledger_callback) \
             .grid(row=1, column=4, sticky=E + W)
-        Button(self.ndaxFrame, text='Get NDAX Markets', command=self.markets_callback) \
+        Button(self.ndaxFrame, text='Get Markets', command=self.markets_callback) \
             .grid(row=1, column=5, sticky=E + W)
-        Button(self.ndaxFrame, text='Get NDAX Ticker', command=self.ticker_callback) \
-            .grid(row=3, column=0, columnspan=2, sticky=E + W)
+        Button(self.ndaxFrame, text='Get Withdrawals', command=self.withdrawals_callback, state='disabled') \
+            .grid(row=2, column=0, sticky=E + W)
+        Button(self.ndaxFrame, text='Get Order Trades', command=self.order_trades_callback, state='disabled') \
+            .grid(row=2, column=1, sticky=E + W)
+        Button(self.ndaxFrame, text='Get Order Book', command=self.order_book_callback, state='disabled') \
+            .grid(row=2, column=2, sticky=E + W)
+        Button(self.ndaxFrame, text='Get Orders', command=self.orders_callback) \
+            .grid(row=2, column=3, sticky=E + W)
+        Button(self.ndaxFrame, text='Get Open Orders', command=self.open_orders_callback) \
+            .grid(row=2, column=4, sticky=E + W)
+        Button(self.ndaxFrame, text='Get My Trades ', command=self.my_trades_callback) \
+            .grid(row=2, column=5, sticky=E + W)
+        Button(self.ndaxFrame, text='Get Currency', command=self.currency_callback) \
+            .grid(row=4, column=0, columnspan=2, sticky=E + W)
+        Button(self.ndaxFrame, text='Get Ticker', command=self.ticker_callback) \
+            .grid(row=4, column=2, columnspan=2, sticky=E + W)
 
         ################################################################################################################
         # Frames
@@ -191,8 +209,26 @@ class GUI:
     def markets_callback(self):
         self.ndax.fetch_markets()
 
+    def my_trades_callback(self):
+        self.ndax.fetch_my_trades()
+
+    def orders_callback(self):
+        self.ndax.fetch_orders()
+
+    def open_orders_callback(self):
+        self.ndax.fetch_open_orders()
+
+    def order_book_callback(self):
+        self.ndax.fetch_order_book()
+
+    def order_trades_callback(self):
+        self.ndax.fetch_order_trades()
+
     def ticker_callback(self):
         self.ndax.fetch_ticker(self.ne1.get())
+
+    def withdrawals_callback(self):
+        self.ndax.fetch_withdrawals()
 
     # OHLC(V) Button Callback
     def ohlcv_callback(self):

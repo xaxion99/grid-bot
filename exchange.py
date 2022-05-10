@@ -61,7 +61,7 @@ class Exchange:
 
     def fetch_my_trades(self):
         my_trades = self.ndax.fetch_my_trades()
-        print(my_trades)
+        file_loader.FileLoader().save_data(my_trades, 'data/my_trades.json')
         return my_trades
 
     def fetch_ohlcv(self, file_path='data/ndax_data_09_May_22.json', pair='DOGE/CAD', tf='1m', since=1652085000):
@@ -80,37 +80,37 @@ class Exchange:
         print(open_orders)
         return open_orders
 
-    def fetch_order(self):
-        order = self.ndax.fetch_order()
-        print(order)
-        return order
+    # def fetch_order(self, id):
+    #     order = self.ndax.fetch_order(id)
+    #     print(order)
+    #     return order
 
     def fetch_orders(self):
         orders = self.ndax.fetch_orders()
-        print(orders)
+        file_loader.FileLoader().save_data(orders, 'data/orders.json')
         return orders
 
-    def fetch_order_book(self, pair):
-        order_book = self.ndax.fetch_order_book(pair)
-        print(order_book)
-        return order_book
+    # def fetch_order_book(self, pair):
+    #     order_book = self.ndax.fetch_order_book(pair)
+    #     print(order_book)
+    #     return order_book
 
-    def fetch_order_trades(self):
-        order_trades = self.ndax.fetch_order_trades()
-        print(order_trades)
-        return order_trades
+    # def fetch_order_trades(self, id):
+    #     order_trades = self.ndax.fetch_order_trades(id)
+    #     print(order_trades)
+    #     return order_trades
 
     def fetch_ticker(self, pair):
         ticker = self.ndax.fetch_ticker(pair)
         print(ticker)
         return ticker
 
-    def fetch_trades(self, pair):
-        trades = self.ndax.fetch_trades(pair)
-        print(trades)
-        return trades
+    # def fetch_trades(self, pair):
+    #     trades = self.ndax.fetch_trades(pair)
+    #     print(trades)
+    #     return trades
 
-    def fetch_withdrawals(self):
-        withdrawals = self.ndax.fetch_withdrawals()
-        print(withdrawals)
-        return withdrawals
+    # def fetch_withdrawals(self):
+    #     withdrawals = self.ndax.fetch_withdrawals()
+    #     print(withdrawals)
+    #     return withdrawals

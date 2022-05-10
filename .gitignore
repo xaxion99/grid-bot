@@ -6,3 +6,5 @@ data/currencies.json
 data/deposits.json
 data/ledger.json
 data/markets.json
+data/my_trades.json
+data/orders.json
