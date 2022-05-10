@@ -51,7 +51,7 @@ class GUI:
 
         # Labels
         self.l0 = Label(self.gridFrame, text='Grid Settings', justify="center")
-        self.l0.grid(row=0, column=0, columnspan=2, sticky=E + W)
+        self.l0.grid(row=0, column=0, columnspan=3, sticky=E + W)
         self.l1 = Label(self.gridFrame, text='Intervals:', justify="center")
         self.l1.grid(row=1, column=0, sticky=E + W)
         self.l2 = Label(self.gridFrame, text='Amount of Crypto per Interval:', justify="center")
@@ -62,10 +62,26 @@ class GUI:
         self.l4.grid(row=4, column=0, sticky=E + W)
         self.l5 = Label(self.gridFrame, text='Number of Decimal Places:', justify="center")
         self.l5.grid(row=5, column=0, sticky=E + W)
-        self.l6 = Label(self.gridFrame, text='Simulation Settings', justify="center")
-        self.l6.grid(row=0, column=3, columnspan=3, sticky=E + W)
-        self.l7 = Label(self.gridFrame, text='File Path:', justify="center")
-        self.l7.grid(row=5, column=3, sticky=E + W)
+
+        self.l6 = Label(self.gridFrame, text='-', justify="center")
+        self.l6.grid(row=1, column=2, sticky=E + W)
+        self.l7 = Label(self.gridFrame, text='-', justify="center")
+        self.l7.grid(row=2, column=2, sticky=E + W)
+        self.l8 = Label(self.gridFrame, text='-', justify="center")
+        self.l8.grid(row=3, column=2, sticky=E + W)
+        self.l9 = Label(self.gridFrame, text='-', justify="center")
+        self.l9.grid(row=4, column=2, sticky=E + W)
+        self.l10 = Label(self.gridFrame, text='-', justify="center")
+        self.l10.grid(row=5, column=2, sticky=E + W)
+
+        self.l11 = Label(self.gridFrame, text='Simulation Settings', justify="center")
+        self.l11.grid(row=0, column=3, columnspan=3, sticky=E + W)
+        self.l12 = Label(self.gridFrame, text='Crypto:', justify="center")
+        self.l12.grid(row=3, column=3, sticky=E + W)
+        self.l13 = Label(self.gridFrame, text='Fiat:', justify="center")
+        self.l13.grid(row=4, column=3, sticky=E + W)
+        self.l14 = Label(self.gridFrame, text='File Path:', justify="center")
+        self.l14.grid(row=5, column=3, sticky=E + W)
 
         # Entries
         self.e1 = Entry(self.gridFrame)
@@ -79,7 +95,11 @@ class GUI:
         self.e5 = Entry(self.gridFrame)
         self.e5.grid(row=5, column=1, sticky=E + W)
         self.e6 = Entry(self.gridFrame)
-        self.e6.grid(row=5, column=4, sticky=E + W)
+        self.e6.grid(row=3, column=4, sticky=E + W)
+        self.e7 = Entry(self.gridFrame)
+        self.e7.grid(row=4, column=4, sticky=E + W)
+        self.e8 = Entry(self.gridFrame)
+        self.e8.grid(row=5, column=4, sticky=E + W)
 
         # Checkboxes
         self.var1 = IntVar()
@@ -87,10 +107,10 @@ class GUI:
         self.c1.grid(row=5, column=5, sticky=E + W)
 
         # Buttons
-        Button(self.gridFrame, text='Create Grid', command=self.grid_callback) \
-            .grid(row=6, column=0, columnspan=2, sticky=E + W)
-        Button(self.gridFrame, text='Run Simulation', command=self.simulation_callback) \
-            .grid(row=6, column=3, columnspan=3, sticky=E + W)
+        self.b1 = Button(self.gridFrame, text='Create Grid', command=self.grid_callback)
+        self.b1.grid(row=6, column=0, columnspan=3, sticky=E + W)
+        self.b2 = Button(self.gridFrame, text='Run Simulation', command=self.simulation_callback, state='disabled')
+        self.b2.grid(row=6, column=3, columnspan=3, sticky=E + W)
 
     # Grid Button Callbacks
     def grid_callback(self):
@@ -100,9 +120,15 @@ class GUI:
         max_val = float(self.e4.get())
         tolerance = int(self.e5.get())
         self.create_grid(intervals, min_val, max_val, amount, tolerance)
+        self.l6.config(text=str(intervals))
+        self.l7.config(text=str(amount))
+        self.l8.config(text=str(min_val))
+        self.l9.config(text=str(max_val))
+        self.l10.config(text=str(tolerance))
+        self.b2['state'] = 'normal'
 
     def simulation_callback(self):
-        file_path = self.e6.get()
+        file_path = self.e8.get()
         if self.var1 == 1:
             self.run_paper_simulation(file_path, True)
         else:
@@ -137,4 +163,13 @@ class GUI:
             self.grid.set_data(self.fl.load_dummy_data(file_path))  # 'data/data1.csv'
         else:
             self.grid.set_data(self.fl.load_data(file_path))
-        self.grid.simulator()
+        crypto = self.e6.get()
+        fiat = self.e7.get()
+        if crypto == '' and fiat == '':
+            self.grid.simulator()
+        elif crypto == '' and fiat != '':
+            self.grid.simulator(fiat=float(fiat))
+        elif crypto != '' and fiat == '':
+            self.grid.simulator(crypto=float(crypto))
+        else:
+            self.grid.simulator(fiat=float(fiat), crypto=float(crypto))

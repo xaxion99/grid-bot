@@ -4,8 +4,6 @@ from file_loader import FileLoader
 class GridTrade:
     data = {}  # Dictionary to hold any preloaded data
     states = {}  # Dictionary to store the grid states
-    cash = 100  # Initial fiat for paper trade
-    coins = 1000  # Initial crypto for paper trade
     fee_rate = 0.002  # Percentage fee rate, NDAX's is 0.2%
 
     def __init__(self, i, mn_v, mx_v, cpi, dp):
@@ -44,12 +42,16 @@ class GridTrade:
                 return key
         return self.state
 
-    def simulator(self):
+    def simulator(self, fiat=100, crypto=1000):
         array = []
         fees = 0
         buys = 0
         sells = 0
         holds = 0
+        cash = fiat  # Initial fiat for paper trade
+        coins = crypto  # Initial crypto for paper trade
+        init_cash = cash
+        init_coins = coins
         for val in self.data.keys():
             amount = self.coins_per_interval * float(self.data[val])
             for v in self.states.values():
@@ -63,8 +65,8 @@ class GridTrade:
                     'id': val,
                     'amount': float(self.data[val]),
                     'type': 'break',
-                    'coins': self.coins,
-                    'cash': self.cash,
+                    'coins': coins,
+                    'cash': cash,
                     'current_state': 'Low Safe',
                     'next_state': 'None'
                 })
@@ -74,38 +76,38 @@ class GridTrade:
                     'id': val,
                     'amount': float(self.data[val]),
                     'type': 'break',
-                    'coins': self.coins,
-                    'cash': self.cash,
+                    'coins': coins,
+                    'cash': cash,
                     'current_state': 'High Safe',
                     'next_state': 'None'
                 })
                 break
-            elif float(self.data[val]) >= self.last_state and self.coins >= self.coins_per_interval \
+            elif float(self.data[val]) >= self.last_state and coins >= self.coins_per_interval \
                     and c_state != self.last_state:
-                self.coins -= self.coins_per_interval
+                coins -= self.coins_per_interval
                 fees += round(self.fee_rate * amount, self.tolerance)
-                self.cash += round(amount - (self.fee_rate * amount), self.tolerance)
+                cash += round(amount - (self.fee_rate * amount), self.tolerance)
                 sells += 1
                 array.append({
                     'id': val,
                     'amount': float(self.data[val]),
                     'type': 'sell',
-                    'coins': self.coins,
-                    'cash': self.cash,
+                    'coins': coins,
+                    'cash': cash,
                     'current_state': self.last_state,
                     'next_state': self.states[self.state]
                 })
-            elif float(self.data[val]) < self.last_state and self.cash >= amount and c_state != self.last_state:
-                self.coins += self.coins_per_interval
+            elif float(self.data[val]) < self.last_state and cash >= amount and c_state != self.last_state:
+                coins += self.coins_per_interval
                 fees += round(self.fee_rate * amount, self.tolerance)
-                self.cash -= round(amount + (self.fee_rate * amount), self.tolerance)
+                cash -= round(amount + (self.fee_rate * amount), self.tolerance)
                 buys += 1
                 array.append({
                     'id': val,
                     'amount': float(self.data[val]),
                     'type': 'buy',
-                    'coins': self.coins,
-                    'cash': self.cash,
+                    'coins': coins,
+                    'cash': cash,
                     'current_state': self.last_state,
                     'next_state': self.states[self.state]
                 })
@@ -115,15 +117,15 @@ class GridTrade:
                     'id': val,
                     'amount': float(self.data[val]),
                     'type': 'hold',
-                    'coins': self.coins,
-                    'cash': self.cash,
+                    'coins': coins,
+                    'cash': cash,
                     'current_state': self.last_state,
                     'next_state': self.states[self.state]
                 })
         print('Min: ' + str(self.min_val) + ', Mid: ' + str(self.mid_val) + ', Max: ' + str(self.max_val))
-        print('Coins: ' + str(self.coins) + ', Cash: ' + str(round(self.cash, self.tolerance)))
-        initial_value = round((1000 * self.mid_val) + 100, self.tolerance)
-        final_value = round((self.coins * self.mid_val) + self.cash, self.tolerance)
+        print('Coins: ' + str(coins) + ', Cash: ' + str(round(cash, self.tolerance)))
+        initial_value = round((init_coins * self.mid_val) + init_cash, self.tolerance)
+        final_value = round((coins * self.mid_val) + cash, self.tolerance)
         profits = round(final_value - initial_value, self.tolerance)
         perc_inc = round((profits / initial_value) * 100, self.tolerance)
         print('Initial Value: ' + str(initial_value) + ', Final Value: ' + str(final_value) + ', Profits: ' +
