@@ -52,13 +52,13 @@ class GUI:
         # Labels
         self.ol0 = Label(self.ohlcvFrame, text='OHLC(V) Data', justify="center")
         self.ol0.grid(row=0, column=0, columnspan=2, sticky=E + W)
-        self.ol1 = Label(self.ohlcvFrame, text='File Path:', justify="center")
+        self.ol1 = Label(self.ohlcvFrame, text='File Path*:', justify="center")
         self.ol1.grid(row=1, column=0, sticky=E + W)
-        self.ol2 = Label(self.ohlcvFrame, text='Trading Pair:', justify="center")
+        self.ol2 = Label(self.ohlcvFrame, text='Trading Pair*:', justify="center")
         self.ol2.grid(row=2, column=0, sticky=E + W)
-        self.ol3 = Label(self.ohlcvFrame, text='Time Frequency:', justify="center")
+        self.ol3 = Label(self.ohlcvFrame, text='Time Frequency*:', justify="center")
         self.ol3.grid(row=3, column=0, sticky=E + W)
-        self.ol4 = Label(self.ohlcvFrame, text='Since (UNIX time):', justify="center")
+        self.ol4 = Label(self.ohlcvFrame, text='Since (UNIX time)*:', justify="center")
         self.ol4.grid(row=4, column=0, sticky=E + W)
 
         # Entries
@@ -83,15 +83,15 @@ class GUI:
         # Labels
         self.l0 = Label(self.gridFrame, text='Grid Settings', justify="center")
         self.l0.grid(row=0, column=0, columnspan=3, sticky=E + W)
-        self.l1 = Label(self.gridFrame, text='Intervals:', justify="center")
+        self.l1 = Label(self.gridFrame, text='Intervals*:', justify="center")
         self.l1.grid(row=1, column=0, sticky=E + W)
-        self.l2 = Label(self.gridFrame, text='Amount of Crypto per Interval:', justify="center")
+        self.l2 = Label(self.gridFrame, text='Amount of Crypto per Interval*:', justify="center")
         self.l2.grid(row=2, column=0, sticky=E + W)
-        self.l3 = Label(self.gridFrame, text='Lower Boundary:', justify="center")
+        self.l3 = Label(self.gridFrame, text='Lower Boundary*:', justify="center")
         self.l3.grid(row=3, column=0, sticky=E + W)
-        self.l4 = Label(self.gridFrame, text='Upper Boundary:', justify="center")
+        self.l4 = Label(self.gridFrame, text='Upper Boundary*:', justify="center")
         self.l4.grid(row=4, column=0, sticky=E + W)
-        self.l5 = Label(self.gridFrame, text='Number of Decimal Places:', justify="center")
+        self.l5 = Label(self.gridFrame, text='Number of Decimal Places*:', justify="center")
         self.l5.grid(row=5, column=0, sticky=E + W)
 
         self.l6 = Label(self.gridFrame, text='-', justify="center")
@@ -111,7 +111,7 @@ class GUI:
         self.l12.grid(row=3, column=3, sticky=E + W)
         self.l13 = Label(self.gridFrame, text='Fiat:', justify="center")
         self.l13.grid(row=4, column=3, sticky=E + W)
-        self.l14 = Label(self.gridFrame, text='File Path:', justify="center")
+        self.l14 = Label(self.gridFrame, text='File Path*:', justify="center")
         self.l14.grid(row=5, column=3, sticky=E + W)
 
         # Entries
