@@ -1,0 +1,8 @@
+.env
+
+data/grid_data.json
+data/balance.json
+data/currencies.json
+data/deposits.json
+data/ledger.json
+data/markets.json

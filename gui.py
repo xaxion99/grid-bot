@@ -23,26 +23,30 @@ class GUI:
         self.ndaxFrame.grid(row=0, column=0, sticky=E + W, padx=5, pady=5)
 
         # Labels
+        self.nl0 = Label(self.ndaxFrame, text='NDAX Functions', justify="center")
+        self.nl0.grid(row=0, column=0, columnspan=5, sticky=E + W)
         self.nl1 = Label(self.ndaxFrame, text='Trading Pair:', justify="center")
-        self.nl1.grid(row=1, column=0, sticky=E + W)
+        self.nl1.grid(row=2, column=0, sticky=E + W)
 
         # Entries
         self.ne1 = Entry(self.ndaxFrame)
-        self.ne1.grid(row=1, column=1, sticky=E + W)
+        self.ne1.grid(row=2, column=1, sticky=E + W)
 
         # Buttons
+        Button(self.ndaxFrame, text='Get NDAX Account', command=self.accounts_callback) \
+            .grid(row=1, column=0, sticky=E + W)
         Button(self.ndaxFrame, text='Get NDAX Balance', command=self.balance_callback)\
-            .grid(row=0, column=0, sticky=E + W)
+            .grid(row=1, column=1, sticky=E + W)
         Button(self.ndaxFrame, text='Get NDAX Currencies', command=self.currencies_callback) \
-            .grid(row=0, column=1, sticky=E + W)
+            .grid(row=1, column=2, sticky=E + W)
         Button(self.ndaxFrame, text='Get NDAX Deposits', command=self.deposits_callback) \
-            .grid(row=0, column=3, sticky=E + W)
-        Button(self.ndaxFrame, text='Get NDAX Fee', command=self.fee_callback) \
-            .grid(row=0, column=4, sticky=E + W)
+            .grid(row=1, column=3, sticky=E + W)
+        Button(self.ndaxFrame, text='Get NDAX Ledger', command=self.ledger_callback) \
+            .grid(row=1, column=4, sticky=E + W)
         Button(self.ndaxFrame, text='Get NDAX Markets', command=self.markets_callback) \
-            .grid(row=0, column=5, sticky=E + W)
+            .grid(row=1, column=5, sticky=E + W)
         Button(self.ndaxFrame, text='Get NDAX Ticker', command=self.ticker_callback) \
-            .grid(row=2, column=0, columnspan=2, sticky=E + W)
+            .grid(row=3, column=0, columnspan=2, sticky=E + W)
 
         ################################################################################################################
         # Frames
@@ -166,8 +170,14 @@ class GUI:
             self.run_paper_simulation(file_path)
 
     # NDAX Button Callbacks
+    def accounts_callback(self):
+        self.ndax.fetch_accounts()
+
     def balance_callback(self):
         self.ndax.fetch_balance()
+
+    def currency_callback(self):
+        self.ndax.fetch_currency('BTC')
 
     def currencies_callback(self):
         self.ndax.fetch_currencies()
@@ -175,8 +185,8 @@ class GUI:
     def deposits_callback(self):
         self.ndax.fetch_deposits()
 
-    def fee_callback(self):
-        self.ndax.fetch_fee()
+    def ledger_callback(self):
+        self.ndax.fetch_ledger()
 
     def markets_callback(self):
         self.ndax.fetch_markets()

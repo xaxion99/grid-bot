@@ -1,3 +1,4 @@
+import file_loader
 from file_loader import FileLoader
 
 
@@ -9,37 +10,53 @@ class Exchange:
 
     def fetch_accounts(self):
         accounts = self.ndax.fetch_accounts()
+        print('Account: ')
         print(accounts)
         return accounts
 
     def fetch_balance(self):
         balance = self.ndax.fetch_balance()
-        print(balance)
+        print('Free: ')
+        print(balance['free'])
+        print('Used: ')
+        print(balance['used'])
+        print('Total: ')
+        print(balance['total'])
+        file_loader.FileLoader().save_data(balance, 'data/balance.json')
         return balance
+
+    def fetch_currency(self, c):
+        currencies = self.ndax.fetch_currencies()
+        # print(currencies)
+        print(c)
+        print(currencies[c])
+        return currencies
 
     def fetch_currencies(self):
         currencies = self.ndax.fetch_currencies()
-        print(currencies)
+        # print(currencies)
+        print(currencies.keys())
+        file_loader.FileLoader().save_data(currencies, 'data/currencies.json')
         return currencies
 
-    def fetch_deposit_address(self):
-        deposit_address = self.ndax.fetch_deposit_address()
-        print(deposit_address)
-        return deposit_address
+    # def fetch_deposit_address(self):
+    #     deposit_address = self.ndax.fetch_deposit_address()
+    #     print(deposit_address)
+    #     return deposit_address
 
     def fetch_deposits(self):
         deposits = self.ndax.fetch_deposits()
-        print(deposits)
+        file_loader.FileLoader().save_data(deposits, 'data/deposits.json')
         return deposits
 
     def fetch_ledger(self):
         ledger = self.ndax.fetch_ledger()
-        print(ledger)
+        file_loader.FileLoader().save_data(ledger, 'data/ledger.json')
         return ledger
 
     def fetch_markets(self):
         markets = self.ndax.fetch_markets()
-        print(markets)
+        file_loader.FileLoader().save_data(markets, 'data/markets.json')
         return markets
 
     def fetch_my_trades(self):
