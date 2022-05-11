@@ -216,6 +216,7 @@ class GUI:
         self.ndax.fetch_orders()
 
     def open_orders_callback(self):
+        # self.ndax.create_order('DOGE/CAD', 'limit', 1, 10, 0.50)
         self.ndax.fetch_open_orders()
 
     def order_book_callback(self):
