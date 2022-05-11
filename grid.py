@@ -44,7 +44,8 @@ class GridTrade:
 
     def simulator(self, fiat=100, crypto=1000):
         array = []
-        fees = 0
+        fee_coin = 0
+        fee_cash = 0
         buys = 0
         sells = 0
         holds = 0
@@ -67,6 +68,7 @@ class GridTrade:
                     'type': 'break',
                     'coins': coins,
                     'cash': cash,
+                    'fees': 'None',
                     'current_state': 'Low Safe',
                     'next_state': 'None'
                 })
@@ -78,15 +80,17 @@ class GridTrade:
                     'type': 'break',
                     'coins': coins,
                     'cash': cash,
+                    'fees': 'None',
                     'current_state': 'High Safe',
                     'next_state': 'None'
                 })
                 break
             elif float(self.data[val]) >= self.last_state and coins >= self.coins_per_interval \
                     and c_state != self.last_state:
+                fee_amount = round(self.fee_rate * amount, self.tolerance)
+                fee_cash += fee_amount
                 coins -= self.coins_per_interval
-                fees += round(self.fee_rate * amount, self.tolerance)
-                cash += round(amount - (self.fee_rate * amount), self.tolerance)
+                cash += round(amount - fee_amount, self.tolerance)
                 sells += 1
                 array.append({
                     'id': val,
@@ -94,13 +98,15 @@ class GridTrade:
                     'type': 'sell',
                     'coins': coins,
                     'cash': cash,
+                    'fees': fee_amount,
                     'current_state': self.last_state,
                     'next_state': self.states[self.state]
                 })
             elif float(self.data[val]) < self.last_state and cash >= amount and c_state != self.last_state:
-                coins += self.coins_per_interval
-                fees += round(self.fee_rate * amount, self.tolerance)
-                cash -= round(amount + (self.fee_rate * amount), self.tolerance)
+                fee_amount = round(self.fee_rate * self.coins_per_interval, self.tolerance)
+                fee_coin += fee_amount
+                cash -= round(amount, self.tolerance)
+                coins += round(self.coins_per_interval - fee_amount, self.tolerance)
                 buys += 1
                 array.append({
                     'id': val,
@@ -108,6 +114,7 @@ class GridTrade:
                     'type': 'buy',
                     'coins': coins,
                     'cash': cash,
+                    'fees': fee_amount,
                     'current_state': self.last_state,
                     'next_state': self.states[self.state]
                 })
@@ -119,17 +126,22 @@ class GridTrade:
                     'type': 'hold',
                     'coins': coins,
                     'cash': cash,
+                    'fees': 'None',
                     'current_state': self.last_state,
                     'next_state': self.states[self.state]
                 })
+        print('Paper Simulation Results')
         print('Min: ' + str(self.min_val) + ', Mid: ' + str(self.mid_val) + ', Max: ' + str(self.max_val))
-        print('Coins: ' + str(coins) + ', Cash: ' + str(round(cash, self.tolerance)))
+        print('Initial Coins: ' + str(init_coins) + ', Final Coins: ' + str(round(coins, self.tolerance)) +
+              ', Initial Cash: ' + str(init_cash) + ', Final Cash: ' + str(round(cash, self.tolerance)))
+        print('Fees Crypto: ' + str(round(fee_coin, self.tolerance)), ', Fees Cash: ' +
+              str(round(fee_cash, self.tolerance)))
         initial_value = round((init_coins * self.mid_val) + init_cash, self.tolerance)
         final_value = round((coins * self.mid_val) + cash, self.tolerance)
         profits = round(final_value - initial_value, self.tolerance)
         perc_inc = round((profits / initial_value) * 100, self.tolerance)
-        print('Initial Value: ' + str(initial_value) + ', Final Value: ' + str(final_value) + ', Profits: ' +
-              str(profits) + ', % Increase: ' + str(perc_inc) + '% , Fee Paid: ' + str(round(fees, self.tolerance)))
+        print('Initial Value: ' + str(initial_value) + ' Final Value: ' + str(final_value) + ', Profits: ' +
+              str(profits) + ', Increase: ' + str(perc_inc) + '%')
         print('Buys: ' + str(buys) + ', Sells: ' + str(sells) + ', Holds: ' + str(holds))
         self.fl.save_data(array, 'data/grid_data.json')
 
