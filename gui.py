@@ -80,8 +80,10 @@ class GUI:
         self.ol2.grid(row=2, column=0, sticky=E + W)
         self.ol3 = Label(self.ohlcvFrame, text='Time Frequency*:', justify="center")
         self.ol3.grid(row=3, column=0, sticky=E + W)
-        self.ol4 = Label(self.ohlcvFrame, text='Since (UNIX time)*:', justify="center")
+        self.ol4 = Label(self.ohlcvFrame, text='Since (UNIX time):', justify="center")
         self.ol4.grid(row=4, column=0, sticky=E + W)
+        self.ol5 = Label(self.ohlcvFrame, text='Limit (UNIX time):', justify="center")
+        self.ol5.grid(row=5, column=0, sticky=E + W)
 
         # Entries
         self.oe1 = Entry(self.ohlcvFrame)
@@ -92,10 +94,12 @@ class GUI:
         self.oe3.grid(row=3, column=1, sticky=E + W)
         self.oe4 = Entry(self.ohlcvFrame)
         self.oe4.grid(row=4, column=1, sticky=E + W)
+        self.oe5 = Entry(self.ohlcvFrame)
+        self.oe5.grid(row=5, column=1, sticky=E + W)
 
         # Buttons
         Button(self.ohlcvFrame, text='Get NDAX OHLC(V)', command=self.ohlcv_callback) \
-            .grid(row=5, column=0, columnspan=2, sticky=E + W)
+            .grid(row=6, column=0, columnspan=2, sticky=E + W)
 
         ################################################################################################################
         # Frames
@@ -237,7 +241,8 @@ class GUI:
         pair = self.oe2.get()
         tf = self.oe3.get()
         since = int(self.oe4.get())
-        self.ndax.fetch_ohlcv(file_path=file_path, pair=pair, tf=tf, since=since)
+        limit = int(self.oe5.get())
+        self.ndax.fetch_ohlcv(file_path=file_path, pair=pair, tf=tf, since=since, limit=limit)
 
     # Complex Functions
     def create_grid(self, intervals, min_val, max_val, amount_per_int, tolerance):
