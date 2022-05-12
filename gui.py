@@ -82,7 +82,7 @@ class GUI:
         self.ol3.grid(row=3, column=0, sticky=E + W)
         self.ol4 = Label(self.ohlcvFrame, text='Since (UNIX time):', justify="center")
         self.ol4.grid(row=4, column=0, sticky=E + W)
-        self.ol5 = Label(self.ohlcvFrame, text='Limit (UNIX time):', justify="center")
+        self.ol5 = Label(self.ohlcvFrame, text='Limit (Data Points):', justify="center")
         self.ol5.grid(row=5, column=0, sticky=E + W)
 
         # Entries
@@ -240,8 +240,14 @@ class GUI:
         file_path = self.oe1.get()
         pair = self.oe2.get()
         tf = self.oe3.get()
-        since = int(self.oe4.get())
-        limit = int(self.oe5.get())
+        if self.oe4.get() == '':
+            since = None
+        else:
+            since = int(self.oe4.get())
+        if self.oe5.get() == '':
+            limit = None
+        else:
+            limit = int(self.oe5.get())
         self.ndax.fetch_ohlcv(file_path=file_path, pair=pair, tf=tf, since=since, limit=limit)
 
     # Complex Functions
