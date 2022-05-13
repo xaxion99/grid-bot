@@ -145,9 +145,9 @@ class GUI:
 
         self.l11 = Label(self.gridFrame, text='Simulation Settings', justify="center")
         self.l11.grid(row=0, column=3, columnspan=3, sticky=E + W)
-        self.l12 = Label(self.gridFrame, text='Crypto:', justify="center")
+        self.l12 = Label(self.gridFrame, text='Crypto (Default: 1000):', justify="center")
         self.l12.grid(row=3, column=3, sticky=E + W)
-        self.l13 = Label(self.gridFrame, text='Fiat:', justify="center")
+        self.l13 = Label(self.gridFrame, text='Fiat (Default: 100):', justify="center")
         self.l13.grid(row=4, column=3, sticky=E + W)
         self.l14 = Label(self.gridFrame, text='File Path*:', justify="center")
         self.l14.grid(row=5, column=3, sticky=E + W)
