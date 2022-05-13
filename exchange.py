@@ -31,6 +31,7 @@ class Exchange:
         # print(currencies)
         print(c)
         print(currencies[c])
+        file_loader.FileLoader().save_data(currencies[c], 'data/currency.json')
         return currencies
 
     def fetch_currencies(self):
