@@ -25,7 +25,7 @@ class GUI:
 
         # Labels
         self.nl0 = Label(self.ndaxFrame, text='NDAX Functions', justify="center")
-        self.nl0.grid(row=0, column=0, columnspan=5, sticky=E + W)
+        self.nl0.grid(row=0, column=0, columnspan=6, sticky=E + W)
         self.nl1 = Label(self.ndaxFrame, text='Currency:', justify="center")
         self.nl1.grid(row=3, column=0, sticky=E + W)
         self.nl2 = Label(self.ndaxFrame, text='Trading Pair:', justify="center")
@@ -102,6 +102,7 @@ class GUI:
 
         # Entries
         self.oe1 = Entry(self.ohlcvFrame)
+        self.oe1.insert(0, 'data/data.json')
         self.oe1.grid(row=1, column=1, sticky=E + W)
         self.oe2 = Entry(self.ohlcvFrame)
         self.oe2.grid(row=4, column=1, sticky=E + W)
@@ -120,7 +121,7 @@ class GUI:
         # Labels
         self.l0 = Label(self.gridFrame, text='Grid Settings', justify="center")
         self.l0.grid(row=0, column=0, columnspan=3, sticky=E + W)
-        self.l1 = Label(self.gridFrame, text='Intervals*:', justify="center")
+        self.l1 = Label(self.gridFrame, text='Intervals (Even)*:', justify="center")
         self.l1.grid(row=1, column=0, sticky=E + W)
         self.l2 = Label(self.gridFrame, text='Amount of Crypto per Interval*:', justify="center")
         self.l2.grid(row=2, column=0, sticky=E + W)
@@ -153,6 +154,7 @@ class GUI:
 
         # Entries
         self.e1 = Entry(self.gridFrame)
+        self.e1.insert(0, '20')
         self.e1.grid(row=1, column=1, sticky=E + W)
         self.e2 = Entry(self.gridFrame)
         self.e2.grid(row=2, column=1, sticky=E + W)
@@ -161,12 +163,14 @@ class GUI:
         self.e4 = Entry(self.gridFrame)
         self.e4.grid(row=4, column=1, sticky=E + W)
         self.e5 = Entry(self.gridFrame)
+        self.e5.insert(0, '4')
         self.e5.grid(row=5, column=1, sticky=E + W)
         self.e6 = Entry(self.gridFrame)
         self.e6.grid(row=3, column=4, sticky=E + W)
         self.e7 = Entry(self.gridFrame)
         self.e7.grid(row=4, column=4, sticky=E + W)
         self.e8 = Entry(self.gridFrame)
+        self.e8.insert(0, 'data/data.json')
         self.e8.grid(row=5, column=4, sticky=E + W)
 
         # Checkboxes
@@ -182,7 +186,10 @@ class GUI:
 
     # Grid Button Callbacks
     def grid_callback(self):
-        intervals = int(self.e1.get())
+        if int(self.e1.get()) % 2 != 0:
+            intervals = int(self.e1.get()) - 1
+        else:
+            intervals = int(self.e1.get())
         amount = float(self.e2.get())
         min_val = float(self.e3.get())
         max_val = float(self.e4.get())
