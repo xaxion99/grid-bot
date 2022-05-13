@@ -44,4 +44,4 @@ class FileLoader:
     # Save data to a JSON file
     def save_data(self, arr, file_path):
         with open(file_path, 'w') as outfile:
-            json.dump(arr, outfile)
+            json.dump(arr, outfile, indent=4, sort_keys=True)

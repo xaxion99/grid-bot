@@ -36,7 +36,7 @@ class Exchange:
     def fetch_currencies(self):
         currencies = self.ndax.fetch_currencies()
         # print(currencies)
-        print(currencies.keys())
+        # print(currencies.keys())
         file_loader.FileLoader().save_data(currencies, 'data/currencies.json')
         return currencies
 
@@ -110,6 +110,13 @@ class Exchange:
         trades = self.ndax.fetch_trades(pair)
         print(trades)
         return trades
+
+    def fetch_trading_pairs(self):
+        markets = self.ndax.fetch_markets()
+        trading_pairs = []
+        for m in markets:
+            trading_pairs.append(m['symbol'])
+        return trading_pairs
 
     def fetch_withdrawals(self):
         withdrawals = self.ndax.fetch_withdrawals()

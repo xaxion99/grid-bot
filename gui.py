@@ -10,6 +10,7 @@ class GUI:
         self.master = master
         self.ndax = Exchange(login)
         self.fl = FileLoader()
+        self.time_frames = ['1m', '5m', '15m', '30m', '1h', '2h', '4h', '6h', '12h', '1d', '1w', '1M', '4M']
 
         # Setup the master window
         master.title("NDAX Grid Trading Bot")
@@ -18,7 +19,7 @@ class GUI:
         master.resizable(0, 0)  # Make window not resizable (resizing is broken atm)
 
         ################################################################################################################
-        # Frames
+        # NDAX Frame
         self.ndaxFrame = Frame(master, borderwidth=2, relief=SUNKEN)
         self.ndaxFrame.grid(row=0, column=0, sticky=E + W, padx=5, pady=5)
 
@@ -30,16 +31,20 @@ class GUI:
         self.nl2 = Label(self.ndaxFrame, text='Trading Pair:', justify="center")
         self.nl2.grid(row=3, column=2, sticky=E + W)
 
-        # Entries
-        self.ne1 = Entry(self.ndaxFrame)
-        self.ne1.grid(row=3, column=1, sticky=E + W)
-        self.ne1 = Entry(self.ndaxFrame)
-        self.ne1.grid(row=3, column=3, sticky=E + W)
+        # Dropdown Menu
+        self.menu1 = StringVar()
+        self.menu1.set("Select a currency")
+        self.d1 = OptionMenu(self.ndaxFrame, self.menu1, *self.ndax.fetch_currencies())
+        self.d1.grid(row=3, column=1, sticky=E + W)
+        self.menu2 = StringVar()
+        self.menu2.set("Select a trading pair")
+        self.d2 = OptionMenu(self.ndaxFrame, self.menu2, *self.ndax.fetch_trading_pairs())
+        self.d2.grid(row=3, column=3, sticky=E + W)
 
         # Buttons
         Button(self.ndaxFrame, text='Get NDAX Account', command=self.accounts_callback) \
             .grid(row=1, column=0, sticky=E + W)
-        Button(self.ndaxFrame, text='Get Balance', command=self.balance_callback)\
+        Button(self.ndaxFrame, text='Get Balance', command=self.balance_callback) \
             .grid(row=1, column=1, sticky=E + W)
         Button(self.ndaxFrame, text='Get Currencies', command=self.currencies_callback) \
             .grid(row=1, column=2, sticky=E + W)
@@ -68,7 +73,7 @@ class GUI:
 
         ################################################################################################################
         # Frames
-        self.ohlcvFrame = Frame(master, borderwidth=2, relief=SUNKEN)
+        self.ohlcvFrame = Frame(self.master, borderwidth=2, relief=SUNKEN)
         self.ohlcvFrame.grid(row=1, column=0, sticky=E + W, padx=5, pady=5)
 
         # Labels
@@ -85,17 +90,23 @@ class GUI:
         self.ol5 = Label(self.ohlcvFrame, text='Limit (Data Points):', justify="center")
         self.ol5.grid(row=5, column=0, sticky=E + W)
 
+        # Dropdown Menu
+        self.menu3 = StringVar()
+        self.menu3.set("Select a trading pair")
+        self.od1 = OptionMenu(self.ohlcvFrame, self.menu3, *self.ndax.fetch_trading_pairs())
+        self.od1.grid(row=2, column=1, sticky=E + W)
+        self.menu4 = StringVar()
+        self.menu4.set("Select a time frequency")
+        self.od2 = OptionMenu(self.ohlcvFrame, self.menu4, *self.time_frames)
+        self.od2.grid(row=3, column=1, sticky=E + W)
+
         # Entries
         self.oe1 = Entry(self.ohlcvFrame)
         self.oe1.grid(row=1, column=1, sticky=E + W)
         self.oe2 = Entry(self.ohlcvFrame)
-        self.oe2.grid(row=2, column=1, sticky=E + W)
+        self.oe2.grid(row=4, column=1, sticky=E + W)
         self.oe3 = Entry(self.ohlcvFrame)
-        self.oe3.grid(row=3, column=1, sticky=E + W)
-        self.oe4 = Entry(self.ohlcvFrame)
-        self.oe4.grid(row=4, column=1, sticky=E + W)
-        self.oe5 = Entry(self.ohlcvFrame)
-        self.oe5.grid(row=5, column=1, sticky=E + W)
+        self.oe3.grid(row=5, column=1, sticky=E + W)
 
         # Buttons
         Button(self.ohlcvFrame, text='Get NDAX OHLC(V)', command=self.ohlcv_callback) \
@@ -199,7 +210,7 @@ class GUI:
         self.ndax.fetch_balance()
 
     def currency_callback(self):
-        self.ndax.fetch_currency('BTC')
+        self.ndax.fetch_currency(self.menu1.get())
 
     def currencies_callback(self):
         self.ndax.fetch_currencies()
@@ -230,7 +241,7 @@ class GUI:
         self.ndax.fetch_order_trades()
 
     def ticker_callback(self):
-        self.ndax.fetch_ticker(self.ne1.get())
+        self.ndax.fetch_ticker(self.menu2.get())
 
     def withdrawals_callback(self):
         self.ndax.fetch_withdrawals()
@@ -238,16 +249,16 @@ class GUI:
     # OHLC(V) Button Callback
     def ohlcv_callback(self):
         file_path = self.oe1.get()
-        pair = self.oe2.get()
-        tf = self.oe3.get()
-        if self.oe4.get() == '':
+        pair = self.menu3.get()
+        tf = self.menu4.get()
+        if self.oe2.get() == '':
             since = None
         else:
-            since = int(self.oe4.get())
-        if self.oe5.get() == '':
+            since = int(self.oe2.get())
+        if self.oe3.get() == '':
             limit = None
         else:
-            limit = int(self.oe5.get())
+            limit = int(self.oe3.get())
         self.ndax.fetch_ohlcv(file_path=file_path, pair=pair, tf=tf, since=since, limit=limit)
 
     # Complex Functions
