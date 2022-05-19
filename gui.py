@@ -1,6 +1,8 @@
+import statistics
 from exchange import Exchange
 from file_loader import FileLoader
 from grid import GridTrade
+from strategy import Strategy
 from tkinter import *
 
 
@@ -10,6 +12,7 @@ class GUI:
         self.master = master
         self.ndax = Exchange(login)
         self.fl = FileLoader()
+        self.market_strategies = ['Ranging', 'Trending']
         self.time_frames = ['1m', '5m', '15m', '30m', '1h', '2h', '4h', '6h', '12h', '1d', '1w', '1M', '4M']
 
         # Setup the master window
@@ -80,7 +83,7 @@ class GUI:
 
         # Labels
         self.ol0 = Label(self.ohlcvFrame, text='OHLC(V) Data', justify="center")
-        self.ol0.grid(row=0, column=0, columnspan=2, sticky=E + W)
+        self.ol0.grid(row=0, column=0, columnspan=4, sticky=E + W)
         self.ol1 = Label(self.ohlcvFrame, text='File Path*:', justify="center")
         self.ol1.grid(row=1, column=0, sticky=E + W)
         self.ol2 = Label(self.ohlcvFrame, text='Trading Pair*:', justify="center")
@@ -91,6 +94,30 @@ class GUI:
         self.ol4.grid(row=4, column=0, sticky=E + W)
         self.ol5 = Label(self.ohlcvFrame, text='Limit (Data Points):', justify="center")
         self.ol5.grid(row=5, column=0, sticky=E + W)
+        self.ol6 = Label(self.ohlcvFrame, text='Trading Pair:', justify="center")
+        self.ol6.grid(row=1, column=2, sticky=E + W)
+        self.ol7 = Label(self.ohlcvFrame, text='Min Value:', justify="center")
+        self.ol7.grid(row=2, column=2, sticky=E + W)
+        self.ol8 = Label(self.ohlcvFrame, text='Mean Value:', justify="center")
+        self.ol8.grid(row=3, column=2, sticky=E + W)
+        self.ol9 = Label(self.ohlcvFrame, text='Median Value:', justify="center")
+        self.ol9.grid(row=4, column=2, sticky=E + W)
+        self.ol10 = Label(self.ohlcvFrame, text='Mid Value:', justify="center")
+        self.ol10.grid(row=5, column=2, sticky=E + W)
+        self.ol11 = Label(self.ohlcvFrame, text='Max Value:', justify="center")
+        self.ol11.grid(row=6, column=2, sticky=E + W)
+        self.ol12 = Label(self.ohlcvFrame, text='-', justify="center")
+        self.ol12.grid(row=1, column=3, sticky=E + W)
+        self.ol13 = Label(self.ohlcvFrame, text='-', justify="center")
+        self.ol13.grid(row=2, column=3, sticky=E + W)
+        self.ol14 = Label(self.ohlcvFrame, text='-', justify="center")
+        self.ol14.grid(row=3, column=3, sticky=E + W)
+        self.ol15 = Label(self.ohlcvFrame, text='-', justify="center")
+        self.ol15.grid(row=4, column=3, sticky=E + W)
+        self.ol16 = Label(self.ohlcvFrame, text='-', justify="center")
+        self.ol16.grid(row=5, column=3, sticky=E + W)
+        self.ol17 = Label(self.ohlcvFrame, text='-', justify="center")
+        self.ol17.grid(row=6, column=3, sticky=E + W)
 
         # Dropdown Menu
         self.menu3 = StringVar()
@@ -133,7 +160,6 @@ class GUI:
         self.l4.grid(row=4, column=0, sticky=E + W)
         self.l5 = Label(self.gridFrame, text='Number of Decimal Places*:', justify="center")
         self.l5.grid(row=5, column=0, sticky=E + W)
-
         self.l6 = Label(self.gridFrame, text='-', justify="center")
         self.l6.grid(row=1, column=2, sticky=E + W)
         self.l7 = Label(self.gridFrame, text='-', justify="center")
@@ -144,15 +170,16 @@ class GUI:
         self.l9.grid(row=4, column=2, sticky=E + W)
         self.l10 = Label(self.gridFrame, text='-', justify="center")
         self.l10.grid(row=5, column=2, sticky=E + W)
-
         self.l11 = Label(self.gridFrame, text='Simulation Settings', justify="center")
         self.l11.grid(row=0, column=3, columnspan=3, sticky=E + W)
-        self.l12 = Label(self.gridFrame, text='Crypto (Default: 1000):', justify="center")
-        self.l12.grid(row=3, column=3, sticky=E + W)
-        self.l13 = Label(self.gridFrame, text='Fiat (Default: 100):', justify="center")
-        self.l13.grid(row=4, column=3, sticky=E + W)
-        self.l14 = Label(self.gridFrame, text='File Path*:', justify="center")
-        self.l14.grid(row=5, column=3, sticky=E + W)
+        self.l12 = Label(self.gridFrame, text='Market Type*:', justify="center")
+        self.l12.grid(row=2, column=3, sticky=E + W)
+        self.l13 = Label(self.gridFrame, text='Crypto (Default: 1000):', justify="center")
+        self.l13.grid(row=3, column=3, sticky=E + W)
+        self.l14 = Label(self.gridFrame, text='Fiat (Default: 100):', justify="center")
+        self.l14.grid(row=4, column=3, sticky=E + W)
+        self.l15 = Label(self.gridFrame, text='File Path*:', justify="center")
+        self.l15.grid(row=5, column=3, sticky=E + W)
 
         # Entries
         self.e1 = Entry(self.gridFrame)
@@ -175,6 +202,12 @@ class GUI:
         self.e8.insert(0, 'data/data.json')
         self.e8.grid(row=5, column=4, sticky=E + W)
 
+        # Dropdowns
+        self.menu5 = StringVar()
+        self.menu5.set("Select a market type")
+        self.gd1 = OptionMenu(self.gridFrame, self.menu5, *self.market_strategies)
+        self.gd1.grid(row=2, column=4, sticky=E + W)
+
         # Checkboxes
         self.var1 = IntVar()
         self.c1 = Checkbutton(self.gridFrame, text='CSV', variable=self.var1, onvalue=1, offvalue=0)
@@ -185,31 +218,6 @@ class GUI:
         self.b1.grid(row=6, column=0, columnspan=3, sticky=E + W)
         self.b2 = Button(self.gridFrame, text='Run Simulation', command=self.simulation_callback, state='disabled')
         self.b2.grid(row=6, column=3, columnspan=3, sticky=E + W)
-
-    # Grid Button Callbacks
-    def grid_callback(self):
-        if int(self.e1.get()) % 2 != 0:
-            intervals = int(self.e1.get()) - 1
-        else:
-            intervals = int(self.e1.get())
-        amount = float(self.e2.get())
-        min_val = float(self.e3.get())
-        max_val = float(self.e4.get())
-        tolerance = int(self.e5.get())
-        self.create_grid(intervals, min_val, max_val, amount, tolerance)
-        self.l6.config(text=str(intervals))
-        self.l7.config(text=str(amount))
-        self.l8.config(text=str(min_val))
-        self.l9.config(text=str(max_val))
-        self.l10.config(text=str(tolerance))
-        self.b2['state'] = 'normal'
-
-    def simulation_callback(self):
-        file_path = self.e8.get()
-        if self.var1 == 1:
-            self.run_paper_simulation(file_path, True)
-        else:
-            self.run_paper_simulation(file_path)
 
     # NDAX Button Callbacks
     def accounts_callback(self):
@@ -271,7 +279,38 @@ class GUI:
             limit = None
         else:
             limit = int(self.oe3.get())
-        self.ndax.fetch_ohlcv(file_path=file_path, pair=pair, tf=tf, since=since, limit=limit)
+        d = self.ndax.fetch_ohlcv(file_path=file_path, pair=pair, tf=tf, since=since, limit=limit)
+        self.ol12.config(text=pair)
+        self.ol13.config(text=str(min(d.values())))
+        self.ol14.config(text=str(round(statistics.mean(d.values()), 8)))
+        self.ol15.config(text=str(round(statistics.median(d.values()), 8)))
+        self.ol16.config(text=str(round((min(d.values()) + max(d.values())) / 2, 8)))
+        self.ol17.config(text=str(max(d.values())))
+
+    # Grid Button Callbacks
+    def grid_callback(self):
+        if int(self.e1.get()) % 2 != 0:
+            intervals = int(self.e1.get()) - 1
+        else:
+            intervals = int(self.e1.get())
+        amount = float(self.e2.get())
+        min_val = float(self.e3.get())
+        max_val = float(self.e4.get())
+        tolerance = int(self.e5.get())
+        self.create_grid(intervals, min_val, max_val, amount, tolerance)
+        self.l6.config(text=str(intervals))
+        self.l7.config(text=str(amount))
+        self.l8.config(text=str(min_val))
+        self.l9.config(text=str(max_val))
+        self.l10.config(text=str(tolerance))
+        self.b2['state'] = 'normal'
+
+    def simulation_callback(self):
+        file_path = self.e8.get()
+        if self.var1 == 1:
+            self.run_paper_simulation(file_path, True)
+        else:
+            self.run_paper_simulation(file_path)
 
     # Complex Functions
     def create_grid(self, intervals, min_val, max_val, amount_per_int, tolerance):
@@ -284,13 +323,25 @@ class GUI:
             self.grid.set_data(self.fl.load_dummy_data(file_path))  # 'data/data1.csv'
         else:
             self.grid.set_data(self.fl.load_data(file_path))
+        s = Strategy(self.grid)
+        ms = self.menu5.get()
         crypto = self.e6.get()
         fiat = self.e7.get()
-        if crypto == '' and fiat == '':
-            self.grid.simulator()
-        elif crypto == '' and fiat != '':
-            self.grid.simulator(fiat=float(fiat))
-        elif crypto != '' and fiat == '':
-            self.grid.simulator(crypto=float(crypto))
-        else:
-            self.grid.simulator(fiat=float(fiat), crypto=float(crypto))
+        if ms == 'Ranging':
+            if crypto == '' and fiat == '':
+                s.range_simulator()
+            elif crypto == '' and fiat != '':
+                s.range_simulator(fiat=float(fiat))
+            elif crypto != '' and fiat == '':
+                s.range_simulator(crypto=float(crypto))
+            else:
+                s.range_simulator(fiat=float(fiat), crypto=float(crypto))
+        elif ms == 'Trending':
+            if crypto == '' and fiat == '':
+                s.trend_simulator()
+            elif crypto == '' and fiat != '':
+                s.trend_simulator(fiat=float(fiat))
+            elif crypto != '' and fiat == '':
+                s.trend_simulator(crypto=float(crypto))
+            else:
+                s.trend_simulator(fiat=float(fiat), crypto=float(crypto))

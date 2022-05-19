@@ -1,4 +1,5 @@
 import file_loader
+import statistics
 from file_loader import FileLoader
 
 
@@ -84,9 +85,11 @@ class Exchange:
         # Check basic stats of the retrieved data
         d = self.fl.load_data(file_path)
         print(f'Min: {min(d.values())}')
+        print(f'Mean: {statistics.mean(d.values())}')
+        print(f'Median: {statistics.median(d.values())}')
         print(f'Mid: {(min(d.values()) + max(d.values())) / 2}')
         print(f'Max: {max(d.values())}')
-        return ohlcv
+        return d
 
     def fetch_open_orders(self):
         open_orders = self.ndax.fetch_open_orders()
