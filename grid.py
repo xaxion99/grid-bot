@@ -1,3 +1,4 @@
+import time
 from file_loader import FileLoader
 
 
@@ -6,7 +7,7 @@ class GridTrade:
     states = {}  # Dictionary to store the grid states
     fee_rate = 0.002  # Percentage fee rate, NDAX's is 0.2%
 
-    def __init__(self, i, mn_v, mx_v, cpi, dp):
+    def __init__(self, i, mn_v, mx_v, cpi, dp, xc):
         self.num_of_intervals = i  # Needs to be even
         self.tolerance = dp  # Number of decimal places to round to
         self.min_val = mn_v  # Minimum value of grid
@@ -22,6 +23,7 @@ class GridTrade:
         self.create_states()  # Generate a list of all the states and there bounds
         self.last_state = self.states[self.state]  # The previous state, used to check if state has changed
         self.fl = FileLoader()  # Create a FileLoader object
+        self.ndax = xc
 
     # Create the grid states which are bounded by stored values
     def create_states(self):
@@ -155,6 +157,20 @@ class GridTrade:
               str(profits) + ', Increase: ' + str(perc_inc) + '%')
         print('Buys: ' + str(buys) + ', Sells: ' + str(sells) + ', Holds: ' + str(holds))
         self.fl.save_data(array, 'data/grid_data.json')
+
+    # Live Trade
+    def live_trade(self):
+        live = True
+        arr = []
+        count = 0
+        while live:
+            arr.append(self.ndax.fetch_ticker('DOGE/CAD'))
+            time.sleep(60)
+            if count == 59:
+                live = False
+            else:
+                count += 1
+        self.fl.save_data(arr, 'data/ticker_data.json')
 
     # Getters
     def get_data(self):
