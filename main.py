@@ -2,6 +2,7 @@ import ccxt
 import os
 from dotenv import load_dotenv
 from gui import GUI
+from test import Test
 from tkinter import Tk
 
 
@@ -13,6 +14,10 @@ def main(login):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
+    # Test code
+    test = Test()
+    # test.load_ticker_data()
+
     # Load in environment variables from .env file
     load_dotenv()
     APIKEY = os.getenv('APIKEY')

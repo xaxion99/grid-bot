@@ -70,6 +70,8 @@ class GUI:
             .grid(row=4, column=0, columnspan=2, sticky=E + W)
         Button(self.ndaxFrame, text='Get Ticker', command=self.ticker_callback) \
             .grid(row=4, column=2, columnspan=2, sticky=E + W)
+        Button(self.ndaxFrame, text='Live Ticker', command=self.live_ticker_callback) \
+            .grid(row=4, column=4, columnspan=2, sticky=E + W)
 
         ################################################################################################################
         # Frames
@@ -228,6 +230,9 @@ class GUI:
     def ledger_callback(self):
         self.ndax.fetch_ledger()
 
+    def live_ticker_callback(self):
+        self.grid.live_trade()
+
     def markets_callback(self):
         self.ndax.fetch_markets()
 
@@ -271,7 +276,7 @@ class GUI:
     # Complex Functions
     def create_grid(self, intervals, min_val, max_val, amount_per_int, tolerance):
         # Sample inputs: intervals=18, min_val=0.155, max_val=0.177, amount_per_int=100, tolerance=4
-        self.grid = GridTrade(intervals, min_val, max_val, amount_per_int, tolerance)
+        self.grid = GridTrade(intervals, min_val, max_val, amount_per_int, tolerance, self.ndax)
 
     def run_paper_simulation(self, file_path, is_csv=False):
         # Sample input: file_path='data/ndax_data_08_May_22.json'
