@@ -1,8 +1,10 @@
+import time
+from exchange import Exchange
 from file_loader import FileLoader
 
 
 class Strategy:
-    def __init__(self, gt):
+    def __init__(self, gt, exchange):
         self.grid = gt
         self.data = self.grid.get_data()
         self.num_of_intervals = self.grid.get_num_of_intervals()
@@ -17,6 +19,7 @@ class Strategy:
         self.fee_rate = self.grid.get_fee_rate()
         self.tolerance = self.grid.get_tolerance()
         self.fl = FileLoader()
+        self.ndax = exchange
 
     def range_simulator(self, fiat=100, crypto=1000):
         array = []
@@ -249,3 +252,17 @@ class Strategy:
         print('Buys: ' + str(buys) + ', Sells: ' + str(sells) + ', Holds: ' + str(holds))
         print('#######################################################################################################')
         self.fl.save_data(array, 'data/grid_data.json')
+
+    # Live Trade
+    def live_trade(self):
+        live = True
+        arr = []
+        count = 0
+        while live:
+            arr.append(self.ndax.fetch_ticker('DOGE/CAD'))
+            time.sleep(60)
+            if count == 59:
+                live = False
+            else:
+                count += 1
+        self.fl.save_data(arr, 'data/ticker_data.json')

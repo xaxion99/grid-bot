@@ -3,7 +3,6 @@ import json
 
 
 class FileLoader:
-
     def __init__(self):
         pass
 

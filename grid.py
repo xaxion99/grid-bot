@@ -1,4 +1,3 @@
-import time
 from file_loader import FileLoader
 
 
@@ -87,17 +86,3 @@ class GridTrade:
     # Setters
     def set_data(self, data):
         self.data = data
-
-    # Live Trade
-    def live_trade(self):
-        live = True
-        arr = []
-        count = 0
-        while live:
-            arr.append(self.ndax.fetch_ticker('DOGE/CAD'))
-            time.sleep(60)
-            if count == 59:
-                live = False
-            else:
-                count += 1
-        self.fl.save_data(arr, 'data/ticker_data.json')
