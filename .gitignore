@@ -2,9 +2,10 @@
 
 data/accounts/*
 data/dummy_data/*
+data/live/*
 data/ndax/*
 data/orders/*
 data/Ripped Data/*
-data/grid_data.json
+
 data/ohlcv_data.json
 data/ticker_data.json

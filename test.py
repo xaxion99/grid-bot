@@ -2,6 +2,8 @@ import json
 import statistics
 from scipy.stats import skew
 
+from strategy import Strategy
+
 
 class Test:
     def __init__(self):

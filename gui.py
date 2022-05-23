@@ -334,6 +334,7 @@ class GUI:
         crypto = self.se1.get()
         fiat = self.se2.get()
         if ms == 'Ranging':
+            s.live_trade('DOGE', 'DOGE/CAD', 'ask')
             if crypto == '' and fiat == '':
                 s.range_simulator()
             elif crypto == '' and fiat != '':
