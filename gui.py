@@ -1,5 +1,7 @@
 import matplotlib.dates as md
 import matplotlib.pyplot as plt
+import mplfinance as mpf
+import pandas as pd
 import statistics
 from datetime import datetime
 from exchange import Exchange
@@ -10,6 +12,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 from matplotlib.figure import Figure
 from strategy import Strategy
 from tkinter import *
+from tkinter import font
 
 
 class GUI:
@@ -22,33 +25,39 @@ class GUI:
         self.time_frames = ['1m', '5m', '15m', '30m', '1h', '2h', '4h', '6h', '12h', '1d', '1w', '1M', '4M']
 
         # Setup the master window
-        master.title("NDAX Grid Trading Bot")
+        self.master.title("NDAX Grid Trading Bot")
         # master.wm_iconbitmap('Icons/logo_large.ico')  # Add logo to top bar
-        # master.resizable(height = None, width = None)
-        master.resizable(1, 1)  # Make window not resizable (resizing is broken atm)
+        self.master.resizable(1, 1)  # Make window not resizable (resizing is broken atm)
+        self.font = font.Font(self.master, family='Times New Roman', size=12, weight='bold')
         
         ################################################################################################################
         # Menus
         menu = Menu(self.master)
         self.master.config(menu=menu)
 
+        # File Menu
+        file_menu = Menu(menu, tearoff=False)
+        file_menu.add_command(label="Exit", command=self.exit_callback, font=self.font)
+        menu.add_cascade(label="File", menu=file_menu, font=self.font)
+
         # Account Menu
         account_menu = Menu(menu, tearoff=False)
-        account_menu.add_command(label="Info", command=self.accounts_callback)
-        account_menu.add_command(label="Balances", command=self.balance_callback)
-        account_menu.add_command(label="Deposits", command=self.deposits_callback)
-        account_menu.add_command(label="Withdrawals", command=self.withdrawals_callback)
-        account_menu.add_command(label="Ledger", command=self.ledger_callback)
-        account_menu.add_command(label="My Trade History", command=self.my_trades_callback)
-        menu.add_cascade(label="Account", menu=account_menu)
+        account_menu.add_command(label="Info", command=self.accounts_callback, font=self.font)
+        account_menu.add_command(label="Balances", command=self.balance_callback, font=self.font)
+        account_menu.add_command(label="Deposits", command=self.deposits_callback, font=self.font)
+        account_menu.add_command(label="Withdrawals", command=self.withdrawals_callback, font=self.font)
+        account_menu.add_command(label="Ledger", command=self.ledger_callback, font=self.font)
+        account_menu.add_command(label="My Trade History", command=self.my_trades_callback, font=self.font)
+        menu.add_cascade(label="Account", menu=account_menu, font=self.font)
 
         # Order Menu
         order_menu = Menu(menu, tearoff=False)
-        order_menu.add_command(label="All Orders", command=self.orders_callback)
-        order_menu.add_command(label="Open Orders", command=self.open_orders_callback)
-        order_menu.add_command(label="Order Book", command=self.order_book_callback, state='disabled')
-        order_menu.add_command(label="Open Trades", command=self.order_trades_callback, state='disabled')
-        menu.add_cascade(label="Order", menu=order_menu)
+        order_menu.add_command(label="All Orders", command=self.orders_callback, font=self.font)
+        order_menu.add_command(label="Open Orders", command=self.open_orders_callback, font=self.font)
+        order_menu.add_command(label="Order Book", command=self.order_book_callback, font=self.font, state='disabled')
+        order_menu.add_command(label="Open Trades", command=self.order_trades_callback, font=self.font,
+                               state='disabled')
+        menu.add_cascade(label="Order", menu=order_menu, font=self.font)
 
         # NDAX Menu
         ndax_menu = Menu(menu, tearoff=False)
@@ -56,237 +65,305 @@ class GUI:
         currency_menu = Menu(ndax_menu, tearoff=False)
         curs = self.ndax.fetch_currencies()
         for c in curs:
-            currency_menu.add_command(label=c, command=lambda i=c: self.currency_callback(i))
-        ndax_menu.add_cascade(label='Currency', menu=currency_menu)
-        ndax_menu.add_command(label="Currencies", command=self.currencies_callback)
+            currency_menu.add_command(label=c, command=lambda i=c: self.currency_callback(i), font=self.font)
+        ndax_menu.add_cascade(label='Currency', menu=currency_menu, font=self.font)
+        ndax_menu.add_command(label="Currencies", command=self.currencies_callback, font=self.font)
         # Market Submenu
         market_menu = Menu(ndax_menu, tearoff=False)
         tps = self.ndax.fetch_trading_pairs()
         for tp in tps:
-            market_menu.add_command(label=tp, command=lambda i=tp: self.market_callback(i))
-        ndax_menu.add_cascade(label='Market', menu=market_menu)
-        ndax_menu.add_command(label="Markets", command=self.markets_callback)
+            market_menu.add_command(label=tp, command=lambda i=tp: self.market_callback(i), font=self.font)
+        ndax_menu.add_cascade(label='Market', menu=market_menu, font=self.font)
+        ndax_menu.add_command(label="Markets", command=self.markets_callback, font=self.font)
         # Ticker Submenu
         ticker_menu = Menu(ndax_menu, tearoff=False)
         for tp in tps:
-            ticker_menu.add_command(label=tp, command=lambda i=tp: self.ticker_callback(i))
-        ndax_menu.add_cascade(label='Check Ticker', menu=ticker_menu)
-        menu.add_cascade(label="NDAX", menu=ndax_menu)
+            ticker_menu.add_command(label=tp, command=lambda i=tp: self.ticker_callback(i), font=self.font)
+        ndax_menu.add_cascade(label='Check Ticker', menu=ticker_menu, font=self.font)
+        menu.add_cascade(label="NDAX", menu=ndax_menu, font=self.font)
+
+        ################################################################################################################
+        # Master Frames
+        self.topFrame = Frame(self.master, borderwidth=2, relief=SUNKEN)
+        self.topFrame.pack(side='top', fill='both', expand=True)
+
+        self.bottomFrame = Frame(self.master, borderwidth=2, relief=SUNKEN)
+        self.bottomFrame.pack(side='top', fill='both', expand=True)
+        self.bottomFrame.rowconfigure(0, weight=1)
+        self.bottomFrame.columnconfigure(0, weight=1)
+        self.bottomFrame.columnconfigure(1, weight=1)
+        self.bottomFrame.columnconfigure(2, weight=1)
+        self.bottomFrame.columnconfigure(3, weight=1)
 
         ################################################################################################################
         # OHLC(V) Frame
-        self.ohlcvFrame = Frame(self.master, borderwidth=2, relief=SUNKEN)
-        self.ohlcvFrame.grid(row=0, column=0, sticky=E + W, padx=5, pady=5)
+        self.ohlcvFrame = Frame(self.bottomFrame, borderwidth=2, relief=SUNKEN)
+        self.ohlcvFrame.grid(row=0, column=0, sticky=N+E+S+W, padx=5, pady=5)
+        self.ohlcvFrame.rowconfigure(0, weight=1)
+        self.ohlcvFrame.rowconfigure(1, weight=1)
+        self.ohlcvFrame.rowconfigure(2, weight=1)
+        self.ohlcvFrame.rowconfigure(3, weight=1)
+        self.ohlcvFrame.rowconfigure(4, weight=1)
+        self.ohlcvFrame.rowconfigure(5, weight=1)
+        self.ohlcvFrame.rowconfigure(6, weight=1)
+        self.ohlcvFrame.columnconfigure(0, weight=1)
+        self.ohlcvFrame.columnconfigure(1, weight=1)
+        self.ohlcvFrame.columnconfigure(2, weight=1)
+        self.ohlcvFrame.columnconfigure(3, weight=1)
 
         # Labels
-        self.ol0 = Label(self.ohlcvFrame, text='OHLC(V) Data', justify="center")
-        self.ol0.grid(row=0, column=0, columnspan=4, sticky=E + W)
-        self.ol1 = Label(self.ohlcvFrame, text='File Path*:', justify="center")
-        self.ol1.grid(row=1, column=0, sticky=E + W)
-        self.ol2 = Label(self.ohlcvFrame, text='Trading Pair*:', justify="center")
-        self.ol2.grid(row=2, column=0, sticky=E + W)
-        self.ol3 = Label(self.ohlcvFrame, text='Time Frequency*:', justify="center")
-        self.ol3.grid(row=3, column=0, sticky=E + W)
-        self.ol4 = Label(self.ohlcvFrame, text='Since (UNIX time):', justify="center")
-        self.ol4.grid(row=4, column=0, sticky=E + W)
-        self.ol5 = Label(self.ohlcvFrame, text='Limit (Data Points):', justify="center")
-        self.ol5.grid(row=5, column=0, sticky=E + W)
-        self.ol6 = Label(self.ohlcvFrame, text='Trading Pair:', justify="center")
-        self.ol6.grid(row=1, column=2, sticky=E + W)
-        self.ol7 = Label(self.ohlcvFrame, text='Min Value:', justify="center")
-        self.ol7.grid(row=2, column=2, sticky=E + W)
-        self.ol8 = Label(self.ohlcvFrame, text='Mean Value:', justify="center")
-        self.ol8.grid(row=3, column=2, sticky=E + W)
-        self.ol9 = Label(self.ohlcvFrame, text='Median Value:', justify="center")
-        self.ol9.grid(row=4, column=2, sticky=E + W)
-        self.ol10 = Label(self.ohlcvFrame, text='Mid Value:', justify="center")
-        self.ol10.grid(row=5, column=2, sticky=E + W)
-        self.ol11 = Label(self.ohlcvFrame, text='Max Value:', justify="center")
-        self.ol11.grid(row=6, column=2, sticky=E + W)
-        self.ol12 = Label(self.ohlcvFrame, text='-', justify="center")
-        self.ol12.grid(row=1, column=3, sticky=E + W)
-        self.ol13 = Label(self.ohlcvFrame, text='-', justify="center")
-        self.ol13.grid(row=2, column=3, sticky=E + W)
-        self.ol14 = Label(self.ohlcvFrame, text='-', justify="center")
-        self.ol14.grid(row=3, column=3, sticky=E + W)
-        self.ol15 = Label(self.ohlcvFrame, text='-', justify="center")
-        self.ol15.grid(row=4, column=3, sticky=E + W)
-        self.ol16 = Label(self.ohlcvFrame, text='-', justify="center")
-        self.ol16.grid(row=5, column=3, sticky=E + W)
-        self.ol17 = Label(self.ohlcvFrame, text='-', justify="center")
-        self.ol17.grid(row=6, column=3, sticky=E + W)
+        self.ol0 = Label(self.ohlcvFrame, text='OHLC(V) Data', justify="center", font=self.font)
+        self.ol0.grid(row=0, column=0, columnspan=4, sticky=N+E+S+W)
+        self.ol1 = Label(self.ohlcvFrame, text='File Path*:', justify="center", font=self.font)
+        self.ol1.grid(row=1, column=0, sticky=N+E+S+W)
+        self.ol2 = Label(self.ohlcvFrame, text='Trading Pair*:', justify="center", font=self.font)
+        self.ol2.grid(row=2, column=0, sticky=N+E+S+W)
+        self.ol3 = Label(self.ohlcvFrame, text='Time Frequency*:', justify="center", font=self.font)
+        self.ol3.grid(row=3, column=0, sticky=N+E+S+W)
+        self.ol4 = Label(self.ohlcvFrame, text='Since (UNIX time):', justify="center", font=self.font)
+        self.ol4.grid(row=4, column=0, sticky=N+E+S+W)
+        self.ol5 = Label(self.ohlcvFrame, text='Limit (Data Points):', justify="center", font=self.font)
+        self.ol5.grid(row=5, column=0, sticky=N+E+S+W)
+        self.ol6 = Label(self.ohlcvFrame, text='Trading Pair:', justify="center", font=self.font)
+        self.ol6.grid(row=1, column=2, sticky=N+E+S+W)
+        self.ol7 = Label(self.ohlcvFrame, text='Min Value:', justify="center", font=self.font)
+        self.ol7.grid(row=2, column=2, sticky=N+E+S+W)
+        self.ol8 = Label(self.ohlcvFrame, text='Mean Value:', justify="center", font=self.font)
+        self.ol8.grid(row=3, column=2, sticky=N+E+S+W)
+        self.ol9 = Label(self.ohlcvFrame, text='Median Value:', justify="center", font=self.font)
+        self.ol9.grid(row=4, column=2, sticky=N+E+S+W)
+        self.ol10 = Label(self.ohlcvFrame, text='Mid Value:', justify="center", font=self.font)
+        self.ol10.grid(row=5, column=2, sticky=N+E+S+W)
+        self.ol11 = Label(self.ohlcvFrame, text='Max Value:', justify="center", font=self.font)
+        self.ol11.grid(row=6, column=2, sticky=N+E+S+W)
+        self.ol12 = Label(self.ohlcvFrame, text='-', justify="center", font=self.font)
+        self.ol12.grid(row=1, column=3, sticky=N+E+S+W)
+        self.ol13 = Label(self.ohlcvFrame, text='-', justify="center", font=self.font)
+        self.ol13.grid(row=2, column=3, sticky=N+E+S+W)
+        self.ol14 = Label(self.ohlcvFrame, text='-', justify="center", font=self.font)
+        self.ol14.grid(row=3, column=3, sticky=N+E+S+W)
+        self.ol15 = Label(self.ohlcvFrame, text='-', justify="center", font=self.font)
+        self.ol15.grid(row=4, column=3, sticky=N+E+S+W)
+        self.ol16 = Label(self.ohlcvFrame, text='-', justify="center", font=self.font)
+        self.ol16.grid(row=5, column=3, sticky=N+E+S+W)
+        self.ol17 = Label(self.ohlcvFrame, text='-', justify="center", font=self.font)
+        self.ol17.grid(row=6, column=3, sticky=N+E+S+W)
 
         # Dropdown Menu
         self.menu1 = StringVar()
         self.menu1.set("Select a trading pair")
         self.od1 = OptionMenu(self.ohlcvFrame, self.menu1, *self.ndax.fetch_trading_pairs())
-        self.od1.grid(row=2, column=1, sticky=E + W)
+        self.od1.config(font=self.font)
+        menu = self.ohlcvFrame.nametowidget(self.od1.menuname)
+        menu.config(font=self.font)
+        self.od1.grid(row=2, column=1, sticky=N+E+S+W)
         self.menu2 = StringVar()
         self.menu2.set("Select a time frequency")
         self.od2 = OptionMenu(self.ohlcvFrame, self.menu2, *self.time_frames)
-        self.od2.grid(row=3, column=1, sticky=E + W)
+        self.od2.config(font=self.font)
+        menu = self.ohlcvFrame.nametowidget(self.od2.menuname)
+        menu.config(font=self.font)
+        self.od2.grid(row=3, column=1, sticky=N+E+S+W)
 
         # Entries
-        self.oe1 = Entry(self.ohlcvFrame)
+        self.oe1 = Entry(self.ohlcvFrame, font=self.font)
         self.oe1.insert(0, 'data/ohlcv_data.json')
-        self.oe1.grid(row=1, column=1, sticky=E + W)
-        self.oe2 = Entry(self.ohlcvFrame)
-        self.oe2.grid(row=4, column=1, sticky=E + W)
-        self.oe3 = Entry(self.ohlcvFrame)
-        self.oe3.grid(row=5, column=1, sticky=E + W)
+        self.oe1.grid(row=1, column=1, sticky=N+E+S+W)
+        self.oe2 = Entry(self.ohlcvFrame, font=self.font)
+        self.oe2.grid(row=4, column=1, sticky=N+E+S+W)
+        self.oe3 = Entry(self.ohlcvFrame, font=self.font)
+        self.oe3.grid(row=5, column=1, sticky=N+E+S+W)
 
         # Buttons
-        Button(self.ohlcvFrame, text='Get NDAX OHLC(V)', command=self.ohlcv_callback) \
-            .grid(row=6, column=0, columnspan=2, sticky=E + W)
+        Button(self.ohlcvFrame, text='Get NDAX OHLC(V)', command=self.ohlcv_callback, font=self.font) \
+            .grid(row=6, column=0, columnspan=2, sticky=N+E+S+W)
 
         ################################################################################################################
         # Grid Frame
-        self.gridFrame = Frame(master, borderwidth=2, relief=SUNKEN)
-        self.gridFrame.grid(row=1, column=0, sticky=E + W, padx=5, pady=5)
+        self.gridFrame = Frame(self.bottomFrame, borderwidth=2, relief=SUNKEN)
+        self.gridFrame.grid(row=0, column=1, sticky=N+E+S+W, padx=5, pady=5)
+        self.gridFrame.rowconfigure(0, weight=1)
+        self.gridFrame.rowconfigure(1, weight=1)
+        self.gridFrame.rowconfigure(2, weight=1)
+        self.gridFrame.rowconfigure(3, weight=1)
+        self.gridFrame.rowconfigure(4, weight=1)
+        self.gridFrame.rowconfigure(5, weight=1)
+        self.gridFrame.rowconfigure(6, weight=1)
+        self.gridFrame.columnconfigure(0, weight=1)
+        self.gridFrame.columnconfigure(1, weight=1)
+        self.gridFrame.columnconfigure(2, weight=1)
 
         # Labels
-        self.gl0 = Label(self.gridFrame, text='Grid Settings', justify="center")
-        self.gl0.grid(row=0, column=0, columnspan=3, sticky=E + W)
-        self.gl1 = Label(self.gridFrame, text='Intervals (Even)*:', justify="center")
-        self.gl1.grid(row=1, column=0, sticky=E + W)
-        self.gl2 = Label(self.gridFrame, text='Amount of Crypto per Interval*:', justify="center")
-        self.gl2.grid(row=2, column=0, sticky=E + W)
-        self.gl3 = Label(self.gridFrame, text='Lower Boundary*:', justify="center")
-        self.gl3.grid(row=3, column=0, sticky=E + W)
-        self.gl4 = Label(self.gridFrame, text='Upper Boundary*:', justify="center")
-        self.gl4.grid(row=4, column=0, sticky=E + W)
-        self.gl5 = Label(self.gridFrame, text='Number of Decimal Places*:', justify="center")
-        self.gl5.grid(row=5, column=0, sticky=E + W)
-        self.gl6 = Label(self.gridFrame, text='-', justify="center")
-        self.gl6.grid(row=1, column=2, sticky=E + W)
-        self.gl7 = Label(self.gridFrame, text='-', justify="center")
-        self.gl7.grid(row=2, column=2, sticky=E + W)
-        self.gl8 = Label(self.gridFrame, text='-', justify="center")
-        self.gl8.grid(row=3, column=2, sticky=E + W)
-        self.gl9 = Label(self.gridFrame, text='-', justify="center")
-        self.gl9.grid(row=4, column=2, sticky=E + W)
-        self.gl10 = Label(self.gridFrame, text='-', justify="center")
-        self.gl10.grid(row=5, column=2, sticky=E + W)
+        self.gl0 = Label(self.gridFrame, text='Grid Settings', justify="center", font=self.font)
+        self.gl0.grid(row=0, column=0, columnspan=3, sticky=N+E+S+W)
+        self.gl1 = Label(self.gridFrame, text='Intervals (Even)*:', justify="center", font=self.font)
+        self.gl1.grid(row=1, column=0, sticky=N+E+S+W)
+        self.gl2 = Label(self.gridFrame, text='Amount of Crypto per Interval*:', justify="center", font=self.font)
+        self.gl2.grid(row=2, column=0, sticky=N+E+S+W)
+        self.gl3 = Label(self.gridFrame, text='Lower Boundary*:', justify="center", font=self.font)
+        self.gl3.grid(row=3, column=0, sticky=N+E+S+W)
+        self.gl4 = Label(self.gridFrame, text='Upper Boundary*:', justify="center", font=self.font)
+        self.gl4.grid(row=4, column=0, sticky=N+E+S+W)
+        self.gl5 = Label(self.gridFrame, text='Number of Decimal Places*:', justify="center", font=self.font)
+        self.gl5.grid(row=5, column=0, sticky=N+E+S+W)
+        self.gl6 = Label(self.gridFrame, text='-', justify="center", font=self.font)
+        self.gl6.grid(row=1, column=2, sticky=N+E+S+W)
+        self.gl7 = Label(self.gridFrame, text='-', justify="center", font=self.font)
+        self.gl7.grid(row=2, column=2, sticky=N+E+S+W)
+        self.gl8 = Label(self.gridFrame, text='-', justify="center", font=self.font)
+        self.gl8.grid(row=3, column=2, sticky=N+E+S+W)
+        self.gl9 = Label(self.gridFrame, text='-', justify="center", font=self.font)
+        self.gl9.grid(row=4, column=2, sticky=N+E+S+W)
+        self.gl10 = Label(self.gridFrame, text='-', justify="center", font=self.font)
+        self.gl10.grid(row=5, column=2, sticky=N+E+S+W)
 
         # Entries
-        self.ge1 = Entry(self.gridFrame)
+        self.ge1 = Entry(self.gridFrame, font=self.font)
         self.ge1.insert(0, '20')
-        self.ge1.grid(row=1, column=1, sticky=E + W)
-        self.ge2 = Entry(self.gridFrame)
-        self.ge2.grid(row=2, column=1, sticky=E + W)
-        self.ge3 = Entry(self.gridFrame)
-        self.ge3.grid(row=3, column=1, sticky=E + W)
-        self.ge4 = Entry(self.gridFrame)
-        self.ge4.grid(row=4, column=1, sticky=E + W)
-        self.ge5 = Entry(self.gridFrame)
+        self.ge1.grid(row=1, column=1, sticky=N+E+S+W)
+        self.ge2 = Entry(self.gridFrame, font=self.font)
+        self.ge2.grid(row=2, column=1, sticky=N+E+S+W)
+        self.ge3 = Entry(self.gridFrame, font=self.font)
+        self.ge3.grid(row=3, column=1, sticky=N+E+S+W)
+        self.ge4 = Entry(self.gridFrame, font=self.font)
+        self.ge4.grid(row=4, column=1, sticky=N+E+S+W)
+        self.ge5 = Entry(self.gridFrame, font=self.font)
         self.ge5.insert(0, '4')
-        self.ge5.grid(row=5, column=1, sticky=E + W)
+        self.ge5.grid(row=5, column=1, sticky=N+E+S+W)
 
         # Buttons
-        Button(self.gridFrame, text='Create Grid', command=self.grid_callback)\
-            .grid(row=6, column=0, columnspan=3, sticky=E + W)
+        Button(self.gridFrame, text='Create Grid', command=self.grid_callback, font=self.font)\
+            .grid(row=6, column=0, columnspan=3, sticky=N+E+S+W)
 
         ################################################################################################################
         # Simulation Frame
-        self.simulationFrame = Frame(master, borderwidth=2, relief=SUNKEN)
-        self.simulationFrame.grid(row=2, column=0, sticky=E + W, padx=5, pady=5)
+        self.simulationFrame = Frame(self.bottomFrame, borderwidth=2, relief=SUNKEN)
+        self.simulationFrame.grid(row=0, column=2, sticky=N+E+S+W, padx=5, pady=5)
+        self.simulationFrame.rowconfigure(0, weight=1)
+        self.simulationFrame.rowconfigure(1, weight=1)
+        self.simulationFrame.rowconfigure(2, weight=1)
+        self.simulationFrame.rowconfigure(3, weight=1)
+        self.simulationFrame.rowconfigure(4, weight=1)
+        self.simulationFrame.rowconfigure(5, weight=1)
+        self.simulationFrame.columnconfigure(0, weight=1)
+        self.simulationFrame.columnconfigure(1, weight=1)
+        self.simulationFrame.columnconfigure(2, weight=1)
 
         # Labels
-        self.sl1 = Label(self.simulationFrame, text='Simulation Settings', justify="center")
-        self.sl1.grid(row=0, column=0, columnspan=3, sticky=E + W)
-        self.sl2 = Label(self.simulationFrame, text='Market Type*:', justify="center")
-        self.sl2.grid(row=1, column=0, sticky=E + W)
-        self.sl3 = Label(self.simulationFrame, text='Crypto (Default: 1000):', justify="center")
-        self.sl3.grid(row=2, column=0, sticky=E + W)
-        self.sl4 = Label(self.simulationFrame, text='Fiat (Default: 100):', justify="center")
-        self.sl4.grid(row=3, column=0, sticky=E + W)
-        self.sl5 = Label(self.simulationFrame, text='File Path*:', justify="center")
-        self.sl5.grid(row=4, column=0, sticky=E + W)
+        self.sl1 = Label(self.simulationFrame, text='Simulation Settings', justify="center", font=self.font)
+        self.sl1.grid(row=0, column=0, columnspan=3, sticky=N+E+S+W)
+        self.sl2 = Label(self.simulationFrame, text='Market Type*:', justify="center", font=self.font)
+        self.sl2.grid(row=1, column=0, sticky=N+E+S+W)
+        self.sl3 = Label(self.simulationFrame, text='Crypto (Default: 1000):', justify="center", font=self.font)
+        self.sl3.grid(row=2, column=0, sticky=N+E+S+W)
+        self.sl4 = Label(self.simulationFrame, text='Fiat (Default: 100):', justify="center", font=self.font)
+        self.sl4.grid(row=3, column=0, sticky=N+E+S+W)
+        self.sl5 = Label(self.simulationFrame, text='File Path*:', justify="center", font=self.font)
+        self.sl5.grid(row=4, column=0, sticky=N+E+S+W)
 
         # Entries
-        self.se1 = Entry(self.simulationFrame)
-        self.se1.grid(row=2, column=1, sticky=E + W)
-        self.se2 = Entry(self.simulationFrame)
-        self.se2.grid(row=3, column=1, sticky=E + W)
-        self.se3 = Entry(self.simulationFrame)
+        self.se1 = Entry(self.simulationFrame, font=self.font)
+        self.se1.grid(row=2, column=1, sticky=N+E+S+W)
+        self.se2 = Entry(self.simulationFrame, font=self.font)
+        self.se2.grid(row=3, column=1, sticky=N+E+S+W)
+        self.se3 = Entry(self.simulationFrame, font=self.font)
         self.se3.insert(0, 'data/ohlcv_data.json')
-        self.se3.grid(row=4, column=1, sticky=E + W)
+        self.se3.grid(row=4, column=1, sticky=N+E+S+W)
 
         # Dropdowns
         self.menu3 = StringVar()
         self.menu3.set("Select a market type")
         self.sd1 = OptionMenu(self.simulationFrame, self.menu3, *self.market_strategies)
-        self.sd1.grid(row=1, column=1, sticky=E + W)
+        self.sd1.config(font=self.font)
+        menu = self.simulationFrame.nametowidget(self.sd1.menuname)
+        menu.config(font=self.font)
+        self.sd1.grid(row=1, column=1, sticky=N+E+S+W)
 
         # Checkboxes
         self.var1 = IntVar()
-        self.sc1 = Checkbutton(self.simulationFrame, text='CSV', variable=self.var1, onvalue=1, offvalue=0)
-        self.sc1.grid(row=4, column=2, sticky=E + W)
+        self.sc1 = Checkbutton(self.simulationFrame, text='CSV', variable=self.var1, onvalue=1, offvalue=0,
+                               font=self.font)
+        self.sc1.grid(row=4, column=2, sticky=N+E+S+W)
 
-        # Button
+        # Buttons
         self.b1 = Button(self.simulationFrame, text='Run Simulation', command=self.simulation_callback,
-                         state='disabled')
-        self.b1.grid(row=5, column=0, columnspan=3, sticky=E + W)
+                         state='disabled', font=self.font)
+        self.b1.grid(row=5, column=0, columnspan=3, sticky=N+E+S+W)
 
         ################################################################################################################
         # Live Frame
-        self.liveFrame = Frame(master, borderwidth=2, relief=SUNKEN)
-        self.liveFrame.grid(row=3, column=0, sticky=E + W, padx=5, pady=5)
+        self.liveFrame = Frame(self.bottomFrame, borderwidth=2, relief=SUNKEN)
+        self.liveFrame.grid(row=0, column=3, sticky=N+E+S+W, padx=5, pady=5)
+        self.liveFrame.rowconfigure(1, weight=1)
+        self.liveFrame.columnconfigure(0, weight=1)
+        self.liveFrame.columnconfigure(1, weight=1)
 
-        # Button
-        self.b2 = Button(self.liveFrame, text='Start Live', command=self.start_live_callback, state='disabled')
-        self.b2.grid(row=0, column=0, sticky=E + W)
-        self.b3 = Button(self.liveFrame, text='Stop Live', command=self.stop_live_callback, state='disabled')
-        self.b3.grid(row=0, column=1, sticky=E + W)
+        # Labels
+        self.ll1 = Label(self.liveFrame, text='Live Buttons', justify="center", font=self.font)
+        self.ll1.grid(row=0, column=0, columnspan=2, sticky=N+E+S+W)
+
+        # Buttons
+        self.b2 = Button(self.liveFrame, text='Start Live', command=self.start_live_callback, state='disabled',
+                         font=self.font)
+        self.b2.grid(row=1, column=0, sticky=N+E+S+W)
+        self.b3 = Button(self.liveFrame, text='Stop Live', command=self.stop_live_callback, state='disabled',
+                         font=self.font)
+        self.b3.grid(row=1, column=1, sticky=N+E+S+W)
 
         ################################################################################################################
         # Plot Frame
-        self.plotFrame = Frame(master, borderwidth=2, relief=SUNKEN)
-        self.plotFrame.grid(row=0, column=1, rowspan=4, columnspan=2, sticky=E + W, padx=5, pady=5)
+        self.plotFrame = Frame(self.topFrame, borderwidth=2, relief=SUNKEN)
+        self.plotFrame.pack(fill='both', expand=True)
 
         # Matplotlib Figure
-        fig = Figure(figsize=(10, 5), dpi=100)
+        self.fig = mpf.figure(figsize=(12, 8), dpi=100)
 
         # Load data
         data = self.fl.load_plot_data('data/ohlcv_data.json')
-        time_arr = []
-        datenums = []
-        high_arr = []
-        low_arr = []
-        open_arr = []
-        close_arr = []
-        vol_arr = []
+
+        # Reformat data
+        reformatted_data = dict()
+        reformatted_data['Date'] = []
+        reformatted_data['Open'] = []
+        reformatted_data['High'] = []
+        reformatted_data['Low'] = []
+        reformatted_data['Close'] = []
+        reformatted_data['Volume'] = []
         for d in data:
-            time_arr.append(datetime.fromtimestamp(d[0] / 1000))
-            datenums.append(md.date2num(datetime.fromtimestamp(d[0] / 1000)))
-            high_arr.append(d[1])
-            low_arr.append(d[2])
-            open_arr.append(d[3])
-            close_arr.append(d[4])
-            vol_arr.append(d[5])
+            reformatted_data['Date'].append(datetime.fromtimestamp(d[0] / 1000))
+            reformatted_data['Open'].append(d[3])
+            reformatted_data['High'].append(d[1])
+            reformatted_data['Low'].append(d[2])
+            reformatted_data['Close'].append(d[4])
+            reformatted_data['Volume'].append(d[5])
+        pdata = pd.DataFrame.from_dict(reformatted_data)
+        pdata.set_index('Date', inplace=True)
 
-        plot1 = fig.add_subplot(111)
-        plot1.set_xticklabels(time_arr, rotation=25)
-        xfmt = md.DateFormatter('%H:%M:%S')  # %Y-%m-%d
-        plot1.xaxis.set_major_formatter(xfmt)
-
-        plot1.plot(time_arr, high_arr)
-        plot1.plot(time_arr, low_arr)
-        plot1.plot(time_arr, open_arr)
-        plot1.plot(time_arr, close_arr)
+        # Create plots and plot data
+        self.plot1 = self.fig.add_subplot(211)
+        self.plot2 = self.fig.add_subplot(212, sharex=self.plot1)
+        mpf.plot(pdata, type='candle', ax=self.plot1, volume=self.plot2)
+        self.fig.tight_layout()
+        self.fig.subplots_adjust(hspace=.0)
 
         # Creating the Tkinter canvas containing the Matplotlib figure
-        canvas = FigureCanvasTkAgg(fig, master=self.plotFrame)
-        canvas.draw()
-        canvas.get_tk_widget().grid(row=0, column=0, sticky=E + W)
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self.plotFrame)
+        self.canvas.draw()
+        self.canvas.get_tk_widget().pack(fill='both', expand=True)
 
         # Creating the Matplotlib toolbar
-        toolbar = NavigationToolbar2Tk(canvas, self.plotFrame, pack_toolbar=False)
+        toolbar = NavigationToolbar2Tk(self.canvas, self.plotFrame, pack_toolbar=False)
         toolbar.update()
-        toolbar.grid(row=1, column=0, sticky=E + W)
+        toolbar.pack()  # fill='both', expand=True
 
     ####################################################################################################################
-    # NDAX Button Callbacks
+    # General Callbacks
+    def exit_callback(self):
+        plt.close('all')
+        self.master.destroy()
+
+    ####################################################################################################################
+    # NDAX Callbacks
     def accounts_callback(self):
         self.ndax.fetch_accounts()
 
@@ -354,6 +431,34 @@ class GUI:
         self.ol15.config(text=str(round(statistics.median(d.values()), 8)))
         self.ol16.config(text=str(round((min(d.values()) + max(d.values())) / 2, 8)))
         self.ol17.config(text=str(max(d.values())))
+
+        # Load data
+        data = self.fl.load_plot_data('data/ohlcv_data.json')
+
+        # Reformat data
+        reformatted_data = dict()
+        reformatted_data['Date'] = []
+        reformatted_data['Open'] = []
+        reformatted_data['High'] = []
+        reformatted_data['Low'] = []
+        reformatted_data['Close'] = []
+        reformatted_data['Volume'] = []
+        for d in data:
+            reformatted_data['Date'].append(datetime.fromtimestamp(d[0] / 1000))
+            reformatted_data['Open'].append(d[3])
+            reformatted_data['High'].append(d[1])
+            reformatted_data['Low'].append(d[2])
+            reformatted_data['Close'].append(d[4])
+            reformatted_data['Volume'].append(d[5])
+        pdata = pd.DataFrame.from_dict(reformatted_data)
+        pdata.set_index('Date', inplace=True)
+
+        # Clear the plots and plot new data
+        self.plot1.cla()
+        self.plot2.cla()
+        mpf.plot(pdata, type='candle', ax=self.plot1, volume=self.plot2)
+        self.canvas.draw()
+
 
     ####################################################################################################################
     # Grid Button Callbacks
