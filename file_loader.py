@@ -40,6 +40,12 @@ class FileLoader:
             a = dict(zip(c_arr, arr))
             return a
 
+    # Load data from a JSON file
+    def load_plot_data(self, file_path):
+        with open(file_path, 'r') as f:
+            data = json.load(f)
+            return data
+
     # Save data to a JSON file
     def save_data(self, arr, file_path):
         with open(file_path, 'w') as outfile:

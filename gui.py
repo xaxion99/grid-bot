@@ -1,7 +1,13 @@
+import matplotlib.dates as md
+import matplotlib.pyplot as plt
 import statistics
+from datetime import datetime
 from exchange import Exchange
 from file_loader import FileLoader
 from grid import GridTrade
+from livethread import LiveThread
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+from matplotlib.figure import Figure
 from strategy import Strategy
 from tkinter import *
 
@@ -11,6 +17,7 @@ class GUI:
         self.master = master
         self.ndax = Exchange(login)
         self.fl = FileLoader()
+        self.live_thread = None
         self.market_strategies = ['Ranging', 'Trending']
         self.time_frames = ['1m', '5m', '15m', '30m', '1h', '2h', '4h', '6h', '12h', '1d', '1w', '1M', '4M']
 
@@ -18,7 +25,7 @@ class GUI:
         master.title("NDAX Grid Trading Bot")
         # master.wm_iconbitmap('Icons/logo_large.ico')  # Add logo to top bar
         # master.resizable(height = None, width = None)
-        master.resizable(0, 0)  # Make window not resizable (resizing is broken atm)
+        master.resizable(1, 1)  # Make window not resizable (resizing is broken atm)
         
         ################################################################################################################
         # Menus
@@ -221,6 +228,63 @@ class GUI:
                          state='disabled')
         self.b1.grid(row=5, column=0, columnspan=3, sticky=E + W)
 
+        ################################################################################################################
+        # Live Frame
+        self.liveFrame = Frame(master, borderwidth=2, relief=SUNKEN)
+        self.liveFrame.grid(row=3, column=0, sticky=E + W, padx=5, pady=5)
+
+        # Button
+        self.b2 = Button(self.liveFrame, text='Start Live', command=self.start_live_callback, state='disabled')
+        self.b2.grid(row=0, column=0, sticky=E + W)
+        self.b3 = Button(self.liveFrame, text='Stop Live', command=self.stop_live_callback, state='disabled')
+        self.b3.grid(row=0, column=1, sticky=E + W)
+
+        ################################################################################################################
+        # Plot Frame
+        self.plotFrame = Frame(master, borderwidth=2, relief=SUNKEN)
+        self.plotFrame.grid(row=0, column=1, rowspan=4, columnspan=2, sticky=E + W, padx=5, pady=5)
+
+        # Matplotlib Figure
+        fig = Figure(figsize=(10, 5), dpi=100)
+
+        # Load data
+        data = self.fl.load_plot_data('data/ohlcv_data.json')
+        time_arr = []
+        datenums = []
+        high_arr = []
+        low_arr = []
+        open_arr = []
+        close_arr = []
+        vol_arr = []
+        for d in data:
+            time_arr.append(datetime.fromtimestamp(d[0] / 1000))
+            datenums.append(md.date2num(datetime.fromtimestamp(d[0] / 1000)))
+            high_arr.append(d[1])
+            low_arr.append(d[2])
+            open_arr.append(d[3])
+            close_arr.append(d[4])
+            vol_arr.append(d[5])
+
+        plot1 = fig.add_subplot(111)
+        plot1.set_xticklabels(time_arr, rotation=25)
+        xfmt = md.DateFormatter('%H:%M:%S')  # %Y-%m-%d
+        plot1.xaxis.set_major_formatter(xfmt)
+
+        plot1.plot(time_arr, high_arr)
+        plot1.plot(time_arr, low_arr)
+        plot1.plot(time_arr, open_arr)
+        plot1.plot(time_arr, close_arr)
+
+        # Creating the Tkinter canvas containing the Matplotlib figure
+        canvas = FigureCanvasTkAgg(fig, master=self.plotFrame)
+        canvas.draw()
+        canvas.get_tk_widget().grid(row=0, column=0, sticky=E + W)
+
+        # Creating the Matplotlib toolbar
+        toolbar = NavigationToolbar2Tk(canvas, self.plotFrame, pack_toolbar=False)
+        toolbar.update()
+        toolbar.grid(row=1, column=0, sticky=E + W)
+
     ####################################################################################################################
     # NDAX Button Callbacks
     def accounts_callback(self):
@@ -309,6 +373,7 @@ class GUI:
         self.gl9.config(text=str(max_val))
         self.gl10.config(text=str(tolerance))
         self.b1['state'] = 'normal'
+        self.b2['state'] = 'normal'
 
     def simulation_callback(self):
         file_path = self.se3.get()
@@ -316,6 +381,29 @@ class GUI:
             self.run_paper_simulation(file_path, True)
         else:
             self.run_paper_simulation(file_path)
+
+    ####################################################################################################################
+    # Live Button Callbacks
+    def start_live_callback(self):
+        self.b2['state'] = 'disabled'
+        self.b3['state'] = 'normal'
+        print('Live Trading Started...')
+        # If we don't already have a running thread, start a new one
+        if not self.live_thread:
+            s = Strategy(self.grid, self.ndax)
+            fig = plt.figure()
+            plt.show()
+            self.live_thread = LiveThread(s, fig)
+            self.live_thread.start()
+
+    def stop_live_callback(self):
+        self.b2['state'] = 'normal'
+        self.b3['state'] = 'disabled'
+        print('Live Trading Ended.')
+        # If we have one running, stop it
+        if self.live_thread:
+            self.live_thread.stop()
+            self.live_thread = None
 
     ####################################################################################################################
     # Complex Functions

@@ -1,4 +1,5 @@
 import time
+from datetime import datetime
 from exchange import Exchange
 from file_loader import FileLoader
 
@@ -150,46 +151,47 @@ class Strategy:
     ####################################################################################################################
     # Live Strategies
     def live_trade(self, c, tp, price='average'):
-        live = True
-        arr = []
-        count = 0
-        fee_cash = 0
-        fee_coin = 0
+        # live = True
+        # arr = []
+        # count = 0
+        # fee_cash = 0
+        # fee_coin = 0
         # Run until kill-switch triggered
-        while live:
-            # Store ticker
-            current_ticker = self.ndax.fetch_ticker(tp)
-            arr.append(current_ticker)
-            p = current_ticker[price]
-            print('Price: ' + str(p))
-            balance = self.ndax.fetch_balance()
-            cash = balance['CAD']['free']
-            print('Cash: ' + str(cash))
-            coins = balance[c]['free']
-            print('Coins: ' + str(coins))
-            live = False
-            # res = self.range_grid(id=count, price=p, cash=cash, coins=coins, fee_cash=fee_cash,
-            #                       fee_coin=fee_coin)
-            # count += 1
-            # cash = res[0]['cash']
-            # coins = res[0]['coins']
-            #
-            # if res[0]['fee_cash'] != 'None':
-            #     fee_cash = res[0]['fee_cash']
-            #
-            # if res[0]['fee_coin'] != 'None':
-            #     fee_coin = res[0]['fee_coin']
-            #
-            # if res[0]['type'] == 'buy':
-            #     buys += 1
-            # elif res[0]['type'] == 'sell':
-            #     sells += 1
-            # elif res[0]['type'] == 'hold':
-            #     holds += 1
-            # else:
-            #     live - False
-            # time.sleep(60)
-        self.fl.save_data(arr, 'data/ticker_data.json')
+        # while live:
+        # Store ticker
+        current_ticker = self.ndax.fetch_ticker(tp)
+        p = current_ticker[price]
+        p1 = current_ticker['bid']
+        p2 = current_ticker['ask']
+        now = datetime.now()
+        dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+        print(dt_string + ': { bid: ' + str(p1) + ', average: ' + str(p) + ', ask: ' + str(p2) + ' }')
+        balance = self.ndax.fetch_balance()
+        cash = balance['CAD']['free']
+        coins = balance[c]['free']
+        # res = self.range_grid(id=count, price=p, cash=cash, coins=coins, fee_cash=fee_cash,
+        #                       fee_coin=fee_coin)
+        # count += 1
+        # cash = res[0]['cash']
+        # coins = res[0]['coins']
+        #
+        # if res[0]['fee_cash'] != 'None':
+        #     fee_cash = res[0]['fee_cash']
+        #
+        # if res[0]['fee_coin'] != 'None':
+        #     fee_coin = res[0]['fee_coin']
+        #
+        # if res[0]['type'] == 'buy':
+        #     buys += 1
+        # elif res[0]['type'] == 'sell':
+        #     sells += 1
+        # elif res[0]['type'] == 'hold':
+        #     holds += 1
+        # else:
+        #     live - False
+        # time.sleep(60)
+        # self.fl.save_data(arr, 'data/ticker_data.json')
+        return current_ticker
 
     ####################################################################################################################
     # Generalized range grid function
