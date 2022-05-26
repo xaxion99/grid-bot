@@ -22,13 +22,20 @@ class GUI:
         self.fl = FileLoader()
         self.live_thread = None
         self.market_strategies = ['Ranging', 'Trending']
+        self.types_array = ['candle', 'line', 'ohlc', 'pnf', 'renko']
         self.time_frames = ['1m', '5m', '15m', '30m', '1h', '2h', '4h', '6h', '12h', '1d', '1w', '1M', '4M']
 
         # Setup the master window
         self.master.title("NDAX Grid Trading Bot")
         # master.wm_iconbitmap('Icons/logo_large.ico')  # Add logo to top bar
         self.master.resizable(1, 1)  # Make window not resizable (resizing is broken atm)
-        self.font = font.Font(self.master, family='Times New Roman', size=12, weight='bold')
+
+        # Setup configurable variables
+        self.font_header = font.Font(self.master, family='Times New Roman', size=20, weight='bold')
+        self.font = font.Font(self.master, family='Times New Roman', size=16)
+        self.title = 'OHLC(V) Graph'
+        self.style = 'default'
+        self.type = 'candle'
         
         ################################################################################################################
         # Menus
@@ -38,7 +45,7 @@ class GUI:
         # File Menu
         file_menu = Menu(menu, tearoff=False)
         file_menu.add_command(label="Exit", command=self.exit_callback, font=self.font)
-        menu.add_cascade(label="File", menu=file_menu, font=self.font)
+        menu.add_cascade(label="File", menu=file_menu, font=self.font_header)
 
         # Account Menu
         account_menu = Menu(menu, tearoff=False)
@@ -48,7 +55,7 @@ class GUI:
         account_menu.add_command(label="Withdrawals", command=self.withdrawals_callback, font=self.font)
         account_menu.add_command(label="Ledger", command=self.ledger_callback, font=self.font)
         account_menu.add_command(label="My Trade History", command=self.my_trades_callback, font=self.font)
-        menu.add_cascade(label="Account", menu=account_menu, font=self.font)
+        menu.add_cascade(label="Account", menu=account_menu, font=self.font_header)
 
         # Order Menu
         order_menu = Menu(menu, tearoff=False)
@@ -57,7 +64,7 @@ class GUI:
         order_menu.add_command(label="Order Book", command=self.order_book_callback, font=self.font, state='disabled')
         order_menu.add_command(label="Open Trades", command=self.order_trades_callback, font=self.font,
                                state='disabled')
-        menu.add_cascade(label="Order", menu=order_menu, font=self.font)
+        menu.add_cascade(label="Order", menu=order_menu, font=self.font_header)
 
         # NDAX Menu
         ndax_menu = Menu(menu, tearoff=False)
@@ -80,7 +87,23 @@ class GUI:
         for tp in tps:
             ticker_menu.add_command(label=tp, command=lambda i=tp: self.ticker_callback(i), font=self.font)
         ndax_menu.add_cascade(label='Check Ticker', menu=ticker_menu, font=self.font)
-        menu.add_cascade(label="NDAX", menu=ndax_menu, font=self.font)
+        menu.add_cascade(label="NDAX", menu=ndax_menu, font=self.font_header)
+
+        # Plot Menu
+        plot_menu = Menu(menu, tearoff=False)
+        # Style Submenu
+        style_menu = Menu(plot_menu, tearoff=False)
+        styles = mpf.available_styles()
+        for s in styles:
+            style_menu.add_command(label=s, command=lambda i=s: self.style_callback(i), font=self.font)
+        plot_menu.add_cascade(label='Style', menu=style_menu, font=self.font)
+        # Type Submenu
+        type_menu = Menu(plot_menu, tearoff=False)
+        types = self.types_array
+        for t in types:
+            type_menu.add_command(label=t, command=lambda i=t: self.type_callback(i), font=self.font)
+        plot_menu.add_cascade(label='Type', menu=type_menu, font=self.font)
+        menu.add_cascade(label="Plot", menu=plot_menu, font=self.font_header)
 
         ################################################################################################################
         # Master Frames
@@ -112,7 +135,7 @@ class GUI:
         self.ohlcvFrame.columnconfigure(3, weight=1)
 
         # Labels
-        self.ol0 = Label(self.ohlcvFrame, text='OHLC(V) Data', justify="center", font=self.font)
+        self.ol0 = Label(self.ohlcvFrame, text='OHLC(V) Historical Data', justify="center", font=self.font_header)
         self.ol0.grid(row=0, column=0, columnspan=4, sticky=N+E+S+W)
         self.ol1 = Label(self.ohlcvFrame, text='File Path*:', justify="center", font=self.font)
         self.ol1.grid(row=1, column=0, sticky=N+E+S+W)
@@ -194,7 +217,7 @@ class GUI:
         self.gridFrame.columnconfigure(2, weight=1)
 
         # Labels
-        self.gl0 = Label(self.gridFrame, text='Grid Settings', justify="center", font=self.font)
+        self.gl0 = Label(self.gridFrame, text='Grid Settings', justify="center", font=self.font_header)
         self.gl0.grid(row=0, column=0, columnspan=3, sticky=N+E+S+W)
         self.gl1 = Label(self.gridFrame, text='Intervals (Even)*:', justify="center", font=self.font)
         self.gl1.grid(row=1, column=0, sticky=N+E+S+W)
@@ -232,7 +255,7 @@ class GUI:
         self.ge5.grid(row=5, column=1, sticky=N+E+S+W)
 
         # Buttons
-        Button(self.gridFrame, text='Create Grid', command=self.grid_callback, font=self.font)\
+        Button(self.gridFrame, text='Create Grid', command=self.grid_callback, font=self.font) \
             .grid(row=6, column=0, columnspan=3, sticky=N+E+S+W)
 
         ################################################################################################################
@@ -250,7 +273,7 @@ class GUI:
         self.simulationFrame.columnconfigure(2, weight=1)
 
         # Labels
-        self.sl1 = Label(self.simulationFrame, text='Simulation Settings', justify="center", font=self.font)
+        self.sl1 = Label(self.simulationFrame, text='Simulation Settings', justify="center", font=self.font_header)
         self.sl1.grid(row=0, column=0, columnspan=3, sticky=N+E+S+W)
         self.sl2 = Label(self.simulationFrame, text='Market Type*:', justify="center", font=self.font)
         self.sl2.grid(row=1, column=0, sticky=N+E+S+W)
@@ -299,7 +322,7 @@ class GUI:
         self.liveFrame.columnconfigure(1, weight=1)
 
         # Labels
-        self.ll1 = Label(self.liveFrame, text='Live Buttons', justify="center", font=self.font)
+        self.ll1 = Label(self.liveFrame, text='Live Buttons', justify="center", font=self.font_header)
         self.ll1.grid(row=0, column=0, columnspan=2, sticky=N+E+S+W)
 
         # Buttons
@@ -331,9 +354,9 @@ class GUI:
         reformatted_data['Volume'] = []
         for d in data:
             reformatted_data['Date'].append(datetime.fromtimestamp(d[0] / 1000))
-            reformatted_data['Open'].append(d[3])
-            reformatted_data['High'].append(d[1])
-            reformatted_data['Low'].append(d[2])
+            reformatted_data['Open'].append(d[1])
+            reformatted_data['High'].append(d[2])
+            reformatted_data['Low'].append(d[3])
             reformatted_data['Close'].append(d[4])
             reformatted_data['Volume'].append(d[5])
         pdata = pd.DataFrame.from_dict(reformatted_data)
@@ -342,8 +365,8 @@ class GUI:
         # Create plots and plot data
         self.plot1 = self.fig.add_subplot(211)
         self.plot2 = self.fig.add_subplot(212, sharex=self.plot1)
-        mpf.plot(pdata, type='candle', ax=self.plot1, volume=self.plot2)
-        self.fig.tight_layout()
+        mpf.plot(pdata, axtitle=self.title, type=self.type, ax=self.plot1, volume=self.plot2, style=self.style)
+        # self.fig.tight_layout()
         self.fig.subplots_adjust(hspace=.0)
 
         # Creating the Tkinter canvas containing the Matplotlib figure
@@ -363,7 +386,7 @@ class GUI:
         self.master.destroy()
 
     ####################################################################################################################
-    # NDAX Callbacks
+    # NDAX Menu Callbacks
     def accounts_callback(self):
         self.ndax.fetch_accounts()
 
@@ -411,6 +434,68 @@ class GUI:
         self.ndax.fetch_withdrawals()
 
     ####################################################################################################################
+    # Plot Menu Callback
+    def style_callback(self, s):
+        self.style = s
+
+        # Load data
+        data = self.fl.load_plot_data('data/ohlcv_data.json')
+
+        # Reformat data
+        reformatted_data = dict()
+        reformatted_data['Date'] = []
+        reformatted_data['Open'] = []
+        reformatted_data['High'] = []
+        reformatted_data['Low'] = []
+        reformatted_data['Close'] = []
+        reformatted_data['Volume'] = []
+        for d in data:
+            reformatted_data['Date'].append(datetime.fromtimestamp(d[0] / 1000))
+            reformatted_data['Open'].append(d[1])
+            reformatted_data['High'].append(d[2])
+            reformatted_data['Low'].append(d[3])
+            reformatted_data['Close'].append(d[4])
+            reformatted_data['Volume'].append(d[5])
+        pdata = pd.DataFrame.from_dict(reformatted_data)
+        pdata.set_index('Date', inplace=True)
+
+        # Clear the plots and plot new data
+        self.plot1.cla()
+        self.plot2.cla()
+        mpf.plot(pdata, axtitle=self.title, type=self.type, ax=self.plot1, volume=self.plot2, style=self.style)
+        self.canvas.draw()
+
+    def type_callback(self, t):
+        self.type = t
+
+        # Load data
+        data = self.fl.load_plot_data('data/ohlcv_data.json')
+
+        # Reformat data
+        reformatted_data = dict()
+        reformatted_data['Date'] = []
+        reformatted_data['Open'] = []
+        reformatted_data['High'] = []
+        reformatted_data['Low'] = []
+        reformatted_data['Close'] = []
+        reformatted_data['Volume'] = []
+        for d in data:
+            reformatted_data['Date'].append(datetime.fromtimestamp(d[0] / 1000))
+            reformatted_data['Open'].append(d[1])
+            reformatted_data['High'].append(d[2])
+            reformatted_data['Low'].append(d[3])
+            reformatted_data['Close'].append(d[4])
+            reformatted_data['Volume'].append(d[5])
+        pdata = pd.DataFrame.from_dict(reformatted_data)
+        pdata.set_index('Date', inplace=True)
+
+        # Clear the plots and plot new data
+        self.plot1.cla()
+        self.plot2.cla()
+        mpf.plot(pdata, axtitle=self.title, type=self.type, ax=self.plot1, volume=self.plot2, style=self.style)
+        self.canvas.draw()
+
+    ####################################################################################################################
     # OHLC(V) Button Callback
     def ohlcv_callback(self):
         file_path = self.oe1.get()
@@ -445,9 +530,9 @@ class GUI:
         reformatted_data['Volume'] = []
         for d in data:
             reformatted_data['Date'].append(datetime.fromtimestamp(d[0] / 1000))
-            reformatted_data['Open'].append(d[3])
-            reformatted_data['High'].append(d[1])
-            reformatted_data['Low'].append(d[2])
+            reformatted_data['Open'].append(d[1])
+            reformatted_data['High'].append(d[2])
+            reformatted_data['Low'].append(d[3])
             reformatted_data['Close'].append(d[4])
             reformatted_data['Volume'].append(d[5])
         pdata = pd.DataFrame.from_dict(reformatted_data)
@@ -456,9 +541,9 @@ class GUI:
         # Clear the plots and plot new data
         self.plot1.cla()
         self.plot2.cla()
-        mpf.plot(pdata, type='candle', ax=self.plot1, volume=self.plot2)
+        self.title = tf + ' ' + pair + ' Graph (' + str(limit) + ' data points)'
+        mpf.plot(pdata, axtitle=self.title, type=self.type, ax=self.plot1, volume=self.plot2, style=self.style)
         self.canvas.draw()
-
 
     ####################################################################################################################
     # Grid Button Callbacks
@@ -480,41 +565,21 @@ class GUI:
         self.b1['state'] = 'normal'
         self.b2['state'] = 'normal'
 
+    def create_grid(self, intervals, min_val, max_val, amount_per_int, tolerance):
+        # Sample inputs: intervals=18, min_val=0.155, max_val=0.177, amount_per_int=100, tolerance=4
+        self.grid = GridTrade(intervals, min_val, max_val, amount_per_int, tolerance, self.ndax)
+        states = self.grid.get_states()
+        for s in states.values():
+            self.plot1.axhline(y=s, color='b', linestyle='--', linewidth=0.5)
+
+    ####################################################################################################################
+    # Simulation Button Callbacks
     def simulation_callback(self):
         file_path = self.se3.get()
         if self.var1 == 1:
             self.run_paper_simulation(file_path, True)
         else:
             self.run_paper_simulation(file_path)
-
-    ####################################################################################################################
-    # Live Button Callbacks
-    def start_live_callback(self):
-        self.b2['state'] = 'disabled'
-        self.b3['state'] = 'normal'
-        print('Live Trading Started...')
-        # If we don't already have a running thread, start a new one
-        if not self.live_thread:
-            s = Strategy(self.grid, self.ndax)
-            fig = plt.figure()
-            plt.show()
-            self.live_thread = LiveThread(s, fig)
-            self.live_thread.start()
-
-    def stop_live_callback(self):
-        self.b2['state'] = 'normal'
-        self.b3['state'] = 'disabled'
-        print('Live Trading Ended.')
-        # If we have one running, stop it
-        if self.live_thread:
-            self.live_thread.stop()
-            self.live_thread = None
-
-    ####################################################################################################################
-    # Complex Functions
-    def create_grid(self, intervals, min_val, max_val, amount_per_int, tolerance):
-        # Sample inputs: intervals=18, min_val=0.155, max_val=0.177, amount_per_int=100, tolerance=4
-        self.grid = GridTrade(intervals, min_val, max_val, amount_per_int, tolerance, self.ndax)
 
     def run_paper_simulation(self, file_path, is_csv=False):
         # Sample input: file_path='data/ndax_data_08_May_22.json'
@@ -545,3 +610,26 @@ class GUI:
                 s.trend_simulator(crypto=float(crypto))
             else:
                 s.trend_simulator(fiat=float(fiat), crypto=float(crypto))
+
+    ####################################################################################################################
+    # Live Button Callbacks
+    def start_live_callback(self):
+        self.b2['state'] = 'disabled'
+        self.b3['state'] = 'normal'
+        print('Live Trading Started...')
+        # If we don't already have a running thread, start a new one
+        if not self.live_thread:
+            s = Strategy(self.grid, self.ndax)
+            fig = plt.figure()
+            plt.show()
+            self.live_thread = LiveThread(s, fig)
+            self.live_thread.start()
+
+    def stop_live_callback(self):
+        self.b2['state'] = 'normal'
+        self.b3['state'] = 'disabled'
+        print('Live Trading Ended.')
+        # If we have one running, stop it
+        if self.live_thread:
+            self.live_thread.stop()
+            self.live_thread = None
