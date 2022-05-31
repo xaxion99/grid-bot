@@ -1,15 +1,16 @@
-import matplotlib.dates as md
 import matplotlib.pyplot as plt
 import mplfinance as mpf
 import pandas as pd
+import settings
 import statistics
+import time
 from datetime import datetime
 from exchange import Exchange
 from file_loader import FileLoader
 from grid import GridTrade
 from livethread import LiveThread
+from matplotlib import animation
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-from matplotlib.figure import Figure
 from strategy import Strategy
 from tkinter import *
 from tkinter import font
@@ -33,6 +34,7 @@ class GUI:
         # Setup configurable variables
         self.font_header = font.Font(self.master, family='Times New Roman', size=20, weight='bold')
         self.font = font.Font(self.master, family='Times New Roman', size=16)
+        self.live = False
         self.title = 'OHLC(V) Graph'
         self.style = 'default'
         self.type = 'candle'
@@ -255,8 +257,8 @@ class GUI:
         self.ge5.grid(row=5, column=1, sticky=N+E+S+W)
 
         # Buttons
-        Button(self.gridFrame, text='Create Grid', command=self.grid_callback, font=self.font) \
-            .grid(row=6, column=0, columnspan=3, sticky=N+E+S+W)
+        self.b4 = Button(self.gridFrame, text='Create Grid', command=self.grid_callback, font=self.font)
+        self.b4.grid(row=6, column=0, columnspan=3, sticky=N+E+S+W)
 
         ################################################################################################################
         # Simulation Frame
@@ -343,24 +345,7 @@ class GUI:
 
         # Load data
         data = self.fl.load_plot_data('data/ohlcv_data.json')
-
-        # Reformat data
-        reformatted_data = dict()
-        reformatted_data['Date'] = []
-        reformatted_data['Open'] = []
-        reformatted_data['High'] = []
-        reformatted_data['Low'] = []
-        reformatted_data['Close'] = []
-        reformatted_data['Volume'] = []
-        for d in data:
-            reformatted_data['Date'].append(datetime.fromtimestamp(d[0] / 1000))
-            reformatted_data['Open'].append(d[1])
-            reformatted_data['High'].append(d[2])
-            reformatted_data['Low'].append(d[3])
-            reformatted_data['Close'].append(d[4])
-            reformatted_data['Volume'].append(d[5])
-        pdata = pd.DataFrame.from_dict(reformatted_data)
-        pdata.set_index('Date', inplace=True)
+        pdata = self.data_reformater(data)
 
         # Create plots and plot data
         self.plot1 = self.fig.add_subplot(211)
@@ -382,8 +367,11 @@ class GUI:
     ####################################################################################################################
     # General Callbacks
     def exit_callback(self):
+        if self.live_thread:
+            self.live_thread.stop()
         plt.close('all')
         self.master.destroy()
+        print("The application has been quit.")
 
     ####################################################################################################################
     # NDAX Menu Callbacks
@@ -439,25 +427,11 @@ class GUI:
         self.style = s
 
         # Load data
-        data = self.fl.load_plot_data('data/ohlcv_data.json')
-
-        # Reformat data
-        reformatted_data = dict()
-        reformatted_data['Date'] = []
-        reformatted_data['Open'] = []
-        reformatted_data['High'] = []
-        reformatted_data['Low'] = []
-        reformatted_data['Close'] = []
-        reformatted_data['Volume'] = []
-        for d in data:
-            reformatted_data['Date'].append(datetime.fromtimestamp(d[0] / 1000))
-            reformatted_data['Open'].append(d[1])
-            reformatted_data['High'].append(d[2])
-            reformatted_data['Low'].append(d[3])
-            reformatted_data['Close'].append(d[4])
-            reformatted_data['Volume'].append(d[5])
-        pdata = pd.DataFrame.from_dict(reformatted_data)
-        pdata.set_index('Date', inplace=True)
+        if self.live:
+            data = settings.ohlcv_data
+        else:
+            data = self.fl.load_plot_data('data/ohlcv_data.json')
+        pdata = self.data_reformater(data)
 
         # Clear the plots and plot new data
         self.plot1.cla()
@@ -469,25 +443,11 @@ class GUI:
         self.type = t
 
         # Load data
-        data = self.fl.load_plot_data('data/ohlcv_data.json')
-
-        # Reformat data
-        reformatted_data = dict()
-        reformatted_data['Date'] = []
-        reformatted_data['Open'] = []
-        reformatted_data['High'] = []
-        reformatted_data['Low'] = []
-        reformatted_data['Close'] = []
-        reformatted_data['Volume'] = []
-        for d in data:
-            reformatted_data['Date'].append(datetime.fromtimestamp(d[0] / 1000))
-            reformatted_data['Open'].append(d[1])
-            reformatted_data['High'].append(d[2])
-            reformatted_data['Low'].append(d[3])
-            reformatted_data['Close'].append(d[4])
-            reformatted_data['Volume'].append(d[5])
-        pdata = pd.DataFrame.from_dict(reformatted_data)
-        pdata.set_index('Date', inplace=True)
+        if self.live:
+            data = settings.ohlcv_data
+        else:
+            data = self.fl.load_plot_data('data/ohlcv_data.json')
+        pdata = self.data_reformater(data)
 
         # Clear the plots and plot new data
         self.plot1.cla()
@@ -510,16 +470,29 @@ class GUI:
         else:
             limit = int(self.oe3.get())
         d = self.ndax.fetch_ohlcv(file_path=file_path, pair=pair, tf=tf, since=since, limit=limit)
+        # Get just the Open data for stats taking
+        open_arr = []
+        for i in d:
+            open_arr.append(i[1])
         self.ol12.config(text=pair)
-        self.ol13.config(text=str(min(d.values())))
-        self.ol14.config(text=str(round(statistics.mean(d.values()), 8)))
-        self.ol15.config(text=str(round(statistics.median(d.values()), 8)))
-        self.ol16.config(text=str(round((min(d.values()) + max(d.values())) / 2, 8)))
-        self.ol17.config(text=str(max(d.values())))
+        self.ol13.config(text=str(min(open_arr)))
+        self.ol14.config(text=str(round(statistics.mean(open_arr), 8)))
+        self.ol15.config(text=str(round(statistics.median(open_arr), 8)))
+        self.ol16.config(text=str(round((min(open_arr) + max(open_arr)) / 2, 8)))
+        self.ol17.config(text=str(max(open_arr)))
 
         # Load data
         data = self.fl.load_plot_data('data/ohlcv_data.json')
+        pdata = self.data_reformater(data)
 
+        # Clear the plots and plot new data
+        self.plot1.cla()
+        self.plot2.cla()
+        self.title = tf + ' ' + pair + ' Graph (' + str(limit) + ' data points)'
+        mpf.plot(pdata, axtitle=self.title, type=self.type, ax=self.plot1, volume=self.plot2, style=self.style)
+        self.canvas.draw()
+
+    def data_reformater(self, data):
         # Reformat data
         reformatted_data = dict()
         reformatted_data['Date'] = []
@@ -537,13 +510,7 @@ class GUI:
             reformatted_data['Volume'].append(d[5])
         pdata = pd.DataFrame.from_dict(reformatted_data)
         pdata.set_index('Date', inplace=True)
-
-        # Clear the plots and plot new data
-        self.plot1.cla()
-        self.plot2.cla()
-        self.title = tf + ' ' + pair + ' Graph (' + str(limit) + ' data points)'
-        mpf.plot(pdata, axtitle=self.title, type=self.type, ax=self.plot1, volume=self.plot2, style=self.style)
-        self.canvas.draw()
+        return pdata
 
     ####################################################################################################################
     # Grid Button Callbacks
@@ -569,8 +536,20 @@ class GUI:
         # Sample inputs: intervals=18, min_val=0.155, max_val=0.177, amount_per_int=100, tolerance=4
         self.grid = GridTrade(intervals, min_val, max_val, amount_per_int, tolerance, self.ndax)
         states = self.grid.get_states()
+        # Clear Axes
+        self.plot1.cla()
+        self.plot2.cla()
+        # Load data
+        if self.live:
+            data = settings.ohlcv_data
+        else:
+            data = self.fl.load_plot_data('data/ohlcv_data.json')
+        pdata = self.data_reformater(data)
+        # Create grid
         for s in states.values():
             self.plot1.axhline(y=s, color='b', linestyle='--', linewidth=0.5)
+        mpf.plot(pdata, axtitle=self.title, type=self.type, ax=self.plot1, volume=self.plot2, style=self.style)
+        self.canvas.draw()
 
     ####################################################################################################################
     # Simulation Button Callbacks
@@ -592,7 +571,6 @@ class GUI:
         crypto = self.se1.get()
         fiat = self.se2.get()
         if ms == 'Ranging':
-            s.live_trade('DOGE', 'DOGE/CAD', 'ask')
             if crypto == '' and fiat == '':
                 s.range_simulator()
             elif crypto == '' and fiat != '':
@@ -616,20 +594,49 @@ class GUI:
     def start_live_callback(self):
         self.b2['state'] = 'disabled'
         self.b3['state'] = 'normal'
+        self.b4['state'] = 'disabled'
         print('Live Trading Started...')
         # If we don't already have a running thread, start a new one
         if not self.live_thread:
             s = Strategy(self.grid, self.ndax)
-            fig = plt.figure()
-            plt.show()
-            self.live_thread = LiveThread(s, fig)
+            self.live_thread = LiveThread(s)
             self.live_thread.start()
+            self.title = 'Live'
+            self.live = True
+            time.sleep(7)
+            self.ani = animation.FuncAnimation(self.fig, self.animate, interval=60000)
+            self.canvas.draw()
 
     def stop_live_callback(self):
         self.b2['state'] = 'normal'
         self.b3['state'] = 'disabled'
+        self.b4['state'] = 'normal'
         print('Live Trading Ended.')
         # If we have one running, stop it
         if self.live_thread:
             self.live_thread.stop()
             self.live_thread = None
+            self.live = False
+            self.fl.save_data(settings.ohlcv_data, 'data/live/live_ohlcv_data.json')
+
+    def animate(self, i):
+        # Load data
+        data = settings.ohlcv_data
+        print(data)
+        pdata = self.data_reformater(data)
+        pdata = pdata.iloc[0:(20 + i)]
+        # Clear axes
+        self.plot1.cla()
+        self.plot2.cla()
+        # Create grid
+        states = self.grid.get_states()
+        for s in states.values():
+            self.plot1.axhline(y=s, color='b', linestyle='--', linewidth=0.5)
+        # Plot data
+        mpf.plot(pdata, axtitle=self.title, type=self.type, ax=self.plot1, volume=self.plot2, style=self.style)
+        self.plot1.relim()
+        self.plot1.autoscale_view()
+        self.plot2.relim()
+        self.plot2.autoscale_view()
+        self.canvas.draw()
+

@@ -1,5 +1,4 @@
 import file_loader
-import statistics
 from file_loader import FileLoader
 
 
@@ -79,9 +78,12 @@ class Exchange:
 
     # Create Order
     def create_order(self, symbol, type, side, amount, price):
+        # self.ndax.create_order(symbol='DOGE/CAD', type='limit', side='buy', amount=100, price=0.08)
+        # self.ndax.create_order(symbol='BTC/CAD', type='market', side='sell', amount=0.001, price=10)
         order = self.ndax.create_order(symbol, type, side, amount, price)
         print(order)
         print('Order placed.')
+        return order
 
     # Edit/Update Order
     # Untested
@@ -154,7 +156,7 @@ class Exchange:
         ohlcv = self.ndax.fetch_ohlcv(pair, timeframe=tf, since=since, limit=limit)  # since= uses UNIX time
         self.fl.save_data(ohlcv, file_path)
         # Check basic stats of the retrieved data
-        d = self.fl.load_data(file_path)
+        d = self.fl.load_plot_data(file_path)
         return d
 
     ####################################################################################################################

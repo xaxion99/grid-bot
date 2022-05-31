@@ -1,6 +1,6 @@
+import settings
 import time
 from datetime import datetime
-from exchange import Exchange
 from file_loader import FileLoader
 
 
@@ -150,47 +150,69 @@ class Strategy:
 
     ####################################################################################################################
     # Live Strategies
-    def live_trade(self, c, tp, price='average'):
-        # live = True
-        # arr = []
-        # count = 0
-        # fee_cash = 0
-        # fee_coin = 0
-        # Run until kill-switch triggered
-        # while live:
-        # Store ticker
+    def live_trade(self, count,  c, tp, price='average'):
+        # Initialize variables
+        fee_cash = 0
+        fee_coin = 0
+        buys = 0
+        holds = 0
+        sells = 0
+
+        # Get ticker data
         current_ticker = self.ndax.fetch_ticker(tp)
         p = current_ticker[price]
+        px = (current_ticker['ask'] + current_ticker['bid']) / 2
         p1 = current_ticker['bid']
         p2 = current_ticker['ask']
         now = datetime.now()
         dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
         print(dt_string + ': { bid: ' + str(p1) + ', average: ' + str(p) + ', ask: ' + str(p2) + ' }')
+
+        # Get balance on NDAX account
         balance = self.ndax.fetch_balance()
         cash = balance['CAD']['free']
         coins = balance[c]['free']
-        # res = self.range_grid(id=count, price=p, cash=cash, coins=coins, fee_cash=fee_cash,
-        #                       fee_coin=fee_coin)
-        # count += 1
-        # cash = res[0]['cash']
-        # coins = res[0]['coins']
-        #
-        # if res[0]['fee_cash'] != 'None':
-        #     fee_cash = res[0]['fee_cash']
-        #
-        # if res[0]['fee_coin'] != 'None':
-        #     fee_coin = res[0]['fee_coin']
-        #
-        # if res[0]['type'] == 'buy':
-        #     buys += 1
-        # elif res[0]['type'] == 'sell':
-        #     sells += 1
-        # elif res[0]['type'] == 'hold':
-        #     holds += 1
-        # else:
-        #     live - False
-        # time.sleep(60)
-        # self.fl.save_data(arr, 'data/ticker_data.json')
+
+        # Get and plot updated data
+        ohlcv = self.ndax.fetch_ohlcv('data/live/current_ohlcv_data.json', tp, '1m', since=None, limit=1)
+        settings.ohlcv_data.append(ohlcv[0])
+        # settings.ticker_data.append([current_ticker['timestamp'], current_ticker['open'], current_ticker['high'],
+        #                              current_ticker['low'], current_ticker['close'],
+        #                              float(current_ticker['info']['Volume'])])
+
+        # Check grid
+        res = self.range_grid(id=count, price=px, cash=cash, coins=coins, fee_cash=fee_cash,
+                              fee_coin=fee_coin)
+
+        # Set return data
+        cash = res[0]['cash']
+        coins = res[0]['coins']
+        if res[0]['fee_cash'] != 'None':
+            fee_cash = res[0]['fee_cash']
+        if res[0]['fee_coin'] != 'None':
+            fee_coin = res[0]['fee_coin']
+        if res[0]['type'] == 'buy':
+            buys += 1
+            self.ndax.create_order(symbol=tp, type='limit', side='buy', amount=self.grid.get_coins_per_interval(),
+                                   price=px)
+        elif res[0]['type'] == 'sell':
+            sells += 1
+            self.ndax.create_order(symbol=tp, type='limit', side='sell', amount=self.grid.get_coins_per_interval(),
+                                   price=px)
+        elif res[0]['type'] == 'hold':
+            holds += 1
+        elif res[0]['type'] == 'break':
+            return res[0]['current_state']  # return 'break' if the grid received a break command
+        settings.trading_stats.append({
+            'id': count,
+            'cash': cash,
+            'coins': coins,
+            'fee_cash': fee_cash,
+            'fee_coin': fee_coin,
+            'buys': buys,
+            'sells': sells,
+            'holds': holds
+        })
         return current_ticker
 
     ####################################################################################################################
