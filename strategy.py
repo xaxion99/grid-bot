@@ -214,6 +214,7 @@ class Strategy:
             'sells': sells,
             'holds': holds
         })
+        self.fl.save_data(settings.ohlcv_data, 'data/live/trading_stats.json')
         return current_ticker
 
     ####################################################################################################################
