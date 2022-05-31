@@ -166,7 +166,8 @@ class Strategy:
         p2 = current_ticker['ask']
         now = datetime.now()
         dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
-        print(dt_string + ': { bid: ' + str(p1) + ', average: ' + str(p) + ', ask: ' + str(p2) + ' }')
+        print(dt_string + ': { bid: ' + str(p1) + ', average: ' + str(p) + ', average_calc:' + str(px) + ', ask: ' +
+              str(p2) + ' }')
 
         # Get balance on NDAX account
         balance = self.ndax.fetch_balance()
@@ -194,11 +195,11 @@ class Strategy:
         if res[0]['type'] == 'buy':
             buys += 1
             self.ndax.create_order(symbol=tp, type='limit', side='buy', amount=self.grid.get_coins_per_interval(),
-                                   price=px)
+                                   price=p1)
         elif res[0]['type'] == 'sell':
             sells += 1
             self.ndax.create_order(symbol=tp, type='limit', side='sell', amount=self.grid.get_coins_per_interval(),
-                                   price=px)
+                                   price=p2)
         elif res[0]['type'] == 'hold':
             holds += 1
         elif res[0]['type'] == 'break':

@@ -23,7 +23,7 @@ class GUI:
         self.fl = FileLoader()
         self.live_thread = None
         self.market_strategies = ['Ranging', 'Trending']
-        self.types_array = ['candle', 'line', 'ohlc', 'pnf', 'renko']
+        self.types_array = ['candle', 'line', 'ohlc']  # , 'pnf', 'renko'
         self.time_frames = ['1m', '5m', '15m', '30m', '1h', '2h', '4h', '6h', '12h', '1d', '1w', '1M', '4M']
 
         # Setup the master window
@@ -622,7 +622,6 @@ class GUI:
     def animate(self, i):
         # Load data
         data = settings.ohlcv_data
-        print(data)
         pdata = self.data_reformater(data)
         pdata = pdata.iloc[0:(20 + i)]
         # Clear axes
