@@ -4,8 +4,12 @@ from file_loader import FileLoader
 
 
 class LiveThread(threading.Thread):
-    def __init__(self, s):
+    def __init__(self, s, tp, bp, m):
         self.s = s
+        self.tp = tp
+        self.bp = bp
+        self.m = m
+        self.c = tp.split('/')[0]
         self.fl = FileLoader()
         super(LiveThread, self).__init__()
         self.__stop = threading.Event()
@@ -23,7 +27,7 @@ class LiveThread(threading.Thread):
         while not self.stopped():
             # Put your script execution here
             count += 1
-            res = self.s.live_trade(count, 'DOGE', 'DOGE/CAD', 'average')
+            res = self.s.live_trade(count, self.c, self.tp, self.bp, self.m)
             if res == 'Low Safe' or res == 'High Safe':
                 time.sleep(3)
                 self.stop()

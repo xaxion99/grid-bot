@@ -150,7 +150,7 @@ class Strategy:
 
     ####################################################################################################################
     # Live Strategies
-    def live_trade(self, count,  c, tp, price='average'):
+    def live_trade(self, count,  c, tp, price='average', market='Ranging'):
         # Initialize variables
         fee_cash = 0
         fee_coin = 0
@@ -164,10 +164,11 @@ class Strategy:
         px = (current_ticker['ask'] + current_ticker['bid']) / 2
         p1 = current_ticker['bid']
         p2 = current_ticker['ask']
+        p3 = current_ticker['vwap']
         now = datetime.now()
         dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
-        print(dt_string + ': { bid: ' + str(p1) + ', average: ' + str(p) + ', average_calc:' + str(px) + ', ask: ' +
-              str(p2) + ' }')
+        print(dt_string + ': { bid: ' + str(p1) + ', average: ' + str(p) + ', average_calc: ' + str(px) + ', ask: ' +
+              str(p2) + ', vwap: ' + str(p3) + ' }')
 
         # Get balance on NDAX account
         balance = self.ndax.fetch_balance()
@@ -182,8 +183,12 @@ class Strategy:
         #                              float(current_ticker['info']['Volume'])])
 
         # Check grid
-        res = self.range_grid(id=count, price=px, cash=cash, coins=coins, fee_cash=fee_cash,
-                              fee_coin=fee_coin)
+        if market == 'Ranging':
+            res = self.range_grid(id=count, price=px, cash=cash, coins=coins, fee_cash=fee_cash,
+                                  fee_coin=fee_coin)
+        elif market == 'Trending':
+            res = self.trend_grid(id=count, price=px, cash=cash, coins=coins, fee_cash=fee_cash,
+                                  fee_coin=fee_coin)
 
         # Set return data
         cash = res[0]['cash']
@@ -194,12 +199,12 @@ class Strategy:
             fee_coin = res[0]['fee_coin']
         if res[0]['type'] == 'buy':
             buys += 1
-            self.ndax.create_order(symbol=tp, type='limit', side='buy', amount=self.grid.get_coins_per_interval(),
-                                   price=p1)
+            self.ndax.create_order(symbol=tp, type='market', side='buy', amount=self.grid.get_coins_per_interval())
+            # , price=p1
         elif res[0]['type'] == 'sell':
             sells += 1
-            self.ndax.create_order(symbol=tp, type='limit', side='sell', amount=self.grid.get_coins_per_interval(),
-                                   price=p2)
+            self.ndax.create_order(symbol=tp, type='market', side='sell', amount=self.grid.get_coins_per_interval())
+            # , price=p2
         elif res[0]['type'] == 'hold':
             holds += 1
         elif res[0]['type'] == 'break':
@@ -214,7 +219,7 @@ class Strategy:
             'sells': sells,
             'holds': holds
         })
-        self.fl.save_data(settings.ohlcv_data, 'data/live/trading_stats.json')
+        self.fl.save_data(settings.trading_stats, 'data/live/trading_stats.json')
         return current_ticker
 
     ####################################################################################################################

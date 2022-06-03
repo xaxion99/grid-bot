@@ -25,6 +25,7 @@ class GUI:
         self.market_strategies = ['Ranging', 'Trending']
         self.types_array = ['candle', 'line', 'ohlc']  # , 'pnf', 'renko'
         self.time_frames = ['1m', '5m', '15m', '30m', '1h', '2h', '4h', '6h', '12h', '1d', '1w', '1M', '4M']
+        self.prices = ['ask', 'average', 'bid', 'close', 'high', 'last', 'low', 'open', 'vwap']
 
         # Setup the master window
         self.master.title("NDAX Grid Trading Bot")
@@ -32,8 +33,8 @@ class GUI:
         self.master.resizable(1, 1)  # Make window not resizable (resizing is broken atm)
 
         # Setup configurable variables
-        self.font_header = font.Font(self.master, family='Times New Roman', size=20, weight='bold')
-        self.font = font.Font(self.master, family='Times New Roman', size=16)
+        self.font_header = font.Font(self.master, family='Times New Roman', size=16, weight='bold')
+        self.font = font.Font(self.master, family='Times New Roman', size=12)
         self.live = False
         self.title = 'OHLC(V) Graph'
         self.style = 'default'
@@ -326,14 +327,43 @@ class GUI:
         # Labels
         self.ll1 = Label(self.liveFrame, text='Live Buttons', justify="center", font=self.font_header)
         self.ll1.grid(row=0, column=0, columnspan=2, sticky=N+E+S+W)
+        self.ll2 = Label(self.liveFrame, text='Trading Pair: ', justify="center", font=self.font)
+        self.ll2.grid(row=1, column=0, sticky=N+E+S+W)
+        self.ll3 = Label(self.liveFrame, text='Basis Price: ', justify="center", font=self.font)
+        self.ll3.grid(row=2, column=0, sticky=N+E+S+W)
+        self.ll4 = Label(self.liveFrame, text='Market Type: ', justify="center", font=self.font)
+        self.ll4.grid(row=3, column=0, sticky=N+E+S+W)
+
+        # Dropdowns
+        self.menu4 = StringVar()
+        self.menu4.set("Select a trading pair")
+        self.ld1 = OptionMenu(self.liveFrame, self.menu4, *self.ndax.fetch_trading_pairs())
+        self.ld1.config(font=self.font)
+        menu = self.liveFrame.nametowidget(self.ld1.menuname)
+        menu.config(font=self.font)
+        self.ld1.grid(row=1, column=1, sticky=N+E+S+W)
+        self.menu5 = StringVar()
+        self.menu5.set("Select a basis price")
+        self.ld2 = OptionMenu(self.liveFrame, self.menu5, *self.prices)
+        self.ld2.config(font=self.font)
+        menu = self.liveFrame.nametowidget(self.ld2.menuname)
+        menu.config(font=self.font)
+        self.ld2.grid(row=2, column=1, sticky=N+E+S+W)
+        self.menu6 = StringVar()
+        self.menu6.set("Select a market type")
+        self.ld3 = OptionMenu(self.liveFrame, self.menu6, *self.market_strategies)
+        self.ld3.config(font=self.font)
+        menu = self.liveFrame.nametowidget(self.ld3.menuname)
+        menu.config(font=self.font)
+        self.ld3.grid(row=3, column=1, sticky=N+E+S+W)
 
         # Buttons
         self.b2 = Button(self.liveFrame, text='Start Live', command=self.start_live_callback, state='disabled',
                          font=self.font)
-        self.b2.grid(row=1, column=0, sticky=N+E+S+W)
+        self.b2.grid(row=4, column=0, sticky=N+E+S+W)
         self.b3 = Button(self.liveFrame, text='Stop Live', command=self.stop_live_callback, state='disabled',
                          font=self.font)
-        self.b3.grid(row=1, column=1, sticky=N+E+S+W)
+        self.b3.grid(row=4, column=1, sticky=N+E+S+W)
 
         ################################################################################################################
         # Plot Frame
@@ -341,7 +371,7 @@ class GUI:
         self.plotFrame.pack(fill='both', expand=True)
 
         # Matplotlib Figure
-        self.fig = mpf.figure(figsize=(12, 8), dpi=100)
+        self.fig = mpf.figure(figsize=(7, 5), dpi=100)
 
         # Load data
         data = self.fl.load_plot_data('data/ohlcv_data.json')
@@ -599,11 +629,14 @@ class GUI:
         # If we don't already have a running thread, start a new one
         if not self.live_thread:
             s = Strategy(self.grid, self.ndax)
-            self.live_thread = LiveThread(s)
+            tp = self.menu4.get()
+            bp = self.menu5.get()
+            m = self.menu6.get()
+            self.live_thread = LiveThread(s, tp, bp, m)
             self.live_thread.start()
             self.title = 'Live'
             self.live = True
-            time.sleep(7)
+            time.sleep(5)
             self.ani = animation.FuncAnimation(self.fig, self.animate, interval=60000)
             self.canvas.draw()
 
