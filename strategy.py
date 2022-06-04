@@ -167,8 +167,8 @@ class Strategy:
         p3 = current_ticker['vwap']
         now = datetime.now()
         dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
-        print(dt_string + ': { bid: ' + str(p1) + ', average: ' + str(p) + ', average_calc: ' + str(px) + ', ask: ' +
-              str(p2) + ', vwap: ' + str(p3) + ' }')
+        print(dt_string + ': { bid: ' + str(p1) + ', average_calc: ' + str(px) + ', ask: ' + str(p2) + ', vwap: ' +
+              str(p3) + ' }')  # ', average: ' + str(p) +
 
         # Get balance on NDAX account
         balance = self.ndax.fetch_balance()
@@ -199,12 +199,10 @@ class Strategy:
             fee_coin = res[0]['fee_coin']
         if res[0]['type'] == 'buy':
             buys += 1
-            self.ndax.create_order(symbol=tp, type='market', side='buy', amount=self.grid.get_coins_per_interval())
-            # , price=p1
+            self.ndax.create_order(symbol=tp, type='limit', side='buy', amount=self.grid.get_coins_per_interval(), price=px)  # , price=p3
         elif res[0]['type'] == 'sell':
             sells += 1
-            self.ndax.create_order(symbol=tp, type='market', side='sell', amount=self.grid.get_coins_per_interval())
-            # , price=p2
+            self.ndax.create_order(symbol=tp, type='limit', side='sell', amount=self.grid.get_coins_per_interval(), price=px)  # , price=p3
         elif res[0]['type'] == 'hold':
             holds += 1
         elif res[0]['type'] == 'break':
@@ -217,7 +215,11 @@ class Strategy:
             'fee_coin': fee_coin,
             'buys': buys,
             'sells': sells,
-            'holds': holds
+            'holds': holds,
+            'bid': p1,
+            'ask': p2,
+            'vwap': p3,
+            'calc_mid': px
         })
         self.fl.save_data(settings.trading_stats, 'data/live/trading_stats.json')
         return current_ticker

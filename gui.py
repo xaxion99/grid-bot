@@ -320,7 +320,11 @@ class GUI:
         # Live Frame
         self.liveFrame = Frame(self.bottomFrame, borderwidth=2, relief=SUNKEN)
         self.liveFrame.grid(row=0, column=3, sticky=N+E+S+W, padx=5, pady=5)
+        self.liveFrame.rowconfigure(0, weight=1)
         self.liveFrame.rowconfigure(1, weight=1)
+        self.liveFrame.rowconfigure(2, weight=1)
+        self.liveFrame.rowconfigure(3, weight=1)
+        self.liveFrame.rowconfigure(4, weight=1)
         self.liveFrame.columnconfigure(0, weight=1)
         self.liveFrame.columnconfigure(1, weight=1)
 

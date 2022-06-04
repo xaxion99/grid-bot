@@ -77,7 +77,7 @@ class Exchange:
         return order_trades
 
     # Create Order
-    def create_order(self, symbol, type, side, amount, price):
+    def create_order(self, symbol, type, side, amount, price=None):
         # self.ndax.create_order(symbol='DOGE/CAD', type='limit', side='buy', amount=100, price=0.08)
         # self.ndax.create_order(symbol='BTC/CAD', type='market', side='sell', amount=0.001, price=10)
         order = self.ndax.create_order(symbol, type, side, amount, price)
