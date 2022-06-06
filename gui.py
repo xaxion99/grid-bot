@@ -470,6 +470,9 @@ class GUI:
         # Clear the plots and plot new data
         self.plot1.cla()
         self.plot2.cla()
+        states = self.grid.get_states()
+        for s in states.values():
+            self.plot1.axhline(y=s, color='b', linestyle='--', linewidth=0.5)
         mpf.plot(pdata, axtitle=self.title, type=self.type, ax=self.plot1, volume=self.plot2, style=self.style)
         self.canvas.draw()
 
@@ -486,6 +489,9 @@ class GUI:
         # Clear the plots and plot new data
         self.plot1.cla()
         self.plot2.cla()
+        states = self.grid.get_states()
+        for s in states.values():
+            self.plot1.axhline(y=s, color='b', linestyle='--', linewidth=0.5)
         mpf.plot(pdata, axtitle=self.title, type=self.type, ax=self.plot1, volume=self.plot2, style=self.style)
         self.canvas.draw()
 
@@ -522,6 +528,9 @@ class GUI:
         # Clear the plots and plot new data
         self.plot1.cla()
         self.plot2.cla()
+        states = self.grid.get_states()
+        for s in states.values():
+            self.plot1.axhline(y=s, color='b', linestyle='--', linewidth=0.5)
         self.title = tf + ' ' + pair + ' Graph (' + str(limit) + ' data points)'
         mpf.plot(pdata, axtitle=self.title, type=self.type, ax=self.plot1, volume=self.plot2, style=self.style)
         self.canvas.draw()
