@@ -160,14 +160,17 @@ class Strategy:
 
         # Get ticker data
         current_ticker = self.ndax.fetch_ticker(tp)
-        p = current_ticker[price]
+        if price == 'calculated mid':
+            p = (current_ticker['ask'] + current_ticker['bid']) / 2
+        else:
+            p = current_ticker[price]
         px = (current_ticker['ask'] + current_ticker['bid']) / 2
         p1 = current_ticker['bid']
         p2 = current_ticker['ask']
         p3 = current_ticker['vwap']
         now = datetime.now()
         dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
-        print(dt_string + ': { bid: ' + str(p1) + ', average_calc: ' + str(px) + ', ask: ' + str(p2) + ', vwap: ' +
+        print(dt_string + ': { bid: ' + str(p1) + ', calculated_mid: ' + str(px) + ', ask: ' + str(p2) + ', vwap: ' +
               str(p3) + ' }')  # ', average: ' + str(p) +
 
         # Get balance on NDAX account
@@ -187,11 +190,9 @@ class Strategy:
 
         # Check grid
         if market == 'Ranging':
-            res = self.range_grid(id=count, price=px, cash=cash, coins=coins, fee_cash=fee_cash,
-                                  fee_coin=fee_coin)
+            res = self.range_grid(id=count, price=p, cash=cash, coins=coins, fee_cash=fee_cash, fee_coin=fee_coin)
         elif market == 'Trending':
-            res = self.trend_grid(id=count, price=px, cash=cash, coins=coins, fee_cash=fee_cash,
-                                  fee_coin=fee_coin)
+            res = self.trend_grid(id=count, price=p, cash=cash, coins=coins, fee_cash=fee_cash, fee_coin=fee_coin)
 
         # Set return data
         cash = res[0]['cash']
