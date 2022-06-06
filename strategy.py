@@ -25,7 +25,7 @@ class Strategy:
     ####################################################################################################################
     # Paper Strategies
     def range_simulator(self, fiat=100, crypto=1000):
-        with open('data/live/live_log.txt', 'w') as f:
+        with open('data/dummy_data/live_log.txt', 'w') as f:
             print('', file=f)
         count = 0
         # Fees
@@ -64,7 +64,7 @@ class Strategy:
                 holds += 1
             else:
                 break
-        with open('data/live/simulation_results.txt', 'a') as f:
+        with open('data/dummy_data/simulation_results.txt', 'a') as f:
             print('##############################################################################################',
                   file=f)
             print('Range Paper Simulation Results', file=f)
@@ -87,7 +87,7 @@ class Strategy:
                   file=f)
 
     def trend_simulator(self, fiat=100, crypto=1000):
-        with open('data/live/live_log.txt', 'w') as f:
+        with open('data/dummy_data/live_log.txt', 'w') as f:
             print('', file=f)
         count = 0
         # Fees
@@ -126,7 +126,7 @@ class Strategy:
                 holds += 1
             else:
                 break
-        with open('data/live/simulation_results.txt', 'a') as f:
+        with open('data/dummy_data/simulation_results.txt', 'a') as f:
             print('##############################################################################################',
                   file=f)
             print('Trend Paper Simulation Results', file=f)
@@ -176,8 +176,11 @@ class Strategy:
         coins = balance[c]['free']
 
         # Get and plot updated data
-        ohlcv = self.ndax.fetch_ohlcv('data/live/current_ohlcv_data.json', tp, '1m', since=None, limit=1)
-        settings.ohlcv_data.append(ohlcv[0])
+        if count > 1000:
+            ohlcv = self.ndax.fetch_ohlcv('data/live/live_ohlcv_data.json', tp, '1m', since=None, limit=1000)
+        else:
+            ohlcv = self.ndax.fetch_ohlcv('data/live/live_ohlcv_data.json', tp, '1m', since=None, limit=count)
+        settings.ohlcv_data = ohlcv
         # settings.ticker_data.append([current_ticker['timestamp'], current_ticker['open'], current_ticker['high'],
         #                              current_ticker['low'], current_ticker['close'],
         #                              float(current_ticker['info']['Volume'])])

@@ -21,6 +21,7 @@ class GUI:
         self.master = master
         self.ndax = Exchange(login)
         self.fl = FileLoader()
+        self.grid = None
         self.live_thread = None
         self.market_strategies = ['Ranging', 'Trending']
         self.types_array = ['candle', 'line', 'ohlc']  # , 'pnf', 'renko'
@@ -470,9 +471,10 @@ class GUI:
         # Clear the plots and plot new data
         self.plot1.cla()
         self.plot2.cla()
-        states = self.grid.get_states()
-        for s in states.values():
-            self.plot1.axhline(y=s, color='b', linestyle='--', linewidth=0.5)
+        if self.grid is not None:
+            states = self.grid.get_states()
+            for s in states.values():
+                self.plot1.axhline(y=s, color='b', linestyle='--', linewidth=0.5)
         mpf.plot(pdata, axtitle=self.title, type=self.type, ax=self.plot1, volume=self.plot2, style=self.style)
         self.canvas.draw()
 
@@ -489,9 +491,10 @@ class GUI:
         # Clear the plots and plot new data
         self.plot1.cla()
         self.plot2.cla()
-        states = self.grid.get_states()
-        for s in states.values():
-            self.plot1.axhline(y=s, color='b', linestyle='--', linewidth=0.5)
+        if self.grid is not None:
+            states = self.grid.get_states()
+            for s in states.values():
+                self.plot1.axhline(y=s, color='b', linestyle='--', linewidth=0.5)
         mpf.plot(pdata, axtitle=self.title, type=self.type, ax=self.plot1, volume=self.plot2, style=self.style)
         self.canvas.draw()
 
@@ -528,9 +531,10 @@ class GUI:
         # Clear the plots and plot new data
         self.plot1.cla()
         self.plot2.cla()
-        states = self.grid.get_states()
-        for s in states.values():
-            self.plot1.axhline(y=s, color='b', linestyle='--', linewidth=0.5)
+        if self.grid is not None:
+            states = self.grid.get_states()
+            for s in states.values():
+                self.plot1.axhline(y=s, color='b', linestyle='--', linewidth=0.5)
         self.title = tf + ' ' + pair + ' Graph (' + str(limit) + ' data points)'
         mpf.plot(pdata, axtitle=self.title, type=self.type, ax=self.plot1, volume=self.plot2, style=self.style)
         self.canvas.draw()
@@ -663,7 +667,6 @@ class GUI:
             self.live_thread.stop()
             self.live_thread = None
             self.live = False
-            self.fl.save_data(settings.ohlcv_data, 'data/live/live_ohlcv_data.json')
 
     def animate(self, i):
         # Load data
