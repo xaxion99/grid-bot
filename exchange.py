@@ -35,10 +35,19 @@ class Exchange:
         file_loader.FileLoader().save_data(ledger, 'data/accounts/ledger.json')
         return ledger
 
-    def fetch_my_trades(self):
+    def fetch_all_my_trades(self):
         my_trades = self.ndax.fetch_my_trades()
         file_loader.FileLoader().save_data(my_trades, 'data/accounts/my_trades.json')
         return my_trades
+
+    def fetch_my_trades(self, file_path, pair=None, since=None, limit=None):
+        trades = self.ndax.fetch_my_trades(pair=pair, since=since, limit=limit)
+        file_loader.FileLoader().save_data(trades, file_path)
+        # Add code to interpret data recieved and return some desired values
+        # Buys/Sells, Gross Buys/Gross Sells, Fees Cash/Fees Coin
+        # Potentially add in Net Buys/Net Sells, Buy Fees/Sell Fees, Average Buy Cost/Average Sell Cost,
+        #                    Average Buy Price/Average Sell Price
+        return trades
 
     # Untested
     def fetch_withdrawals(self):

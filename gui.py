@@ -114,18 +114,102 @@ class GUI:
         self.topFrame = Frame(self.master, borderwidth=2, relief=SUNKEN)
         self.topFrame.pack(side='top', fill='both', expand=True)
 
+        self.middleFrame = Frame(self.master, borderwidth=2, relief=SUNKEN)
+        self.middleFrame.pack(side='top', fill='both', expand=True)
+        self.middleFrame.rowconfigure(0, weight=1)
+        self.middleFrame.columnconfigure(0, weight=1)
+        self.middleFrame.columnconfigure(1, weight=1)
+        self.middleFrame.columnconfigure(2, weight=1)
+        # self.middleFrame.columnconfigure(3, weight=1)
+
         self.bottomFrame = Frame(self.master, borderwidth=2, relief=SUNKEN)
         self.bottomFrame.pack(side='top', fill='both', expand=True)
         self.bottomFrame.rowconfigure(0, weight=1)
         self.bottomFrame.columnconfigure(0, weight=1)
         self.bottomFrame.columnconfigure(1, weight=1)
-        self.bottomFrame.columnconfigure(2, weight=1)
-        self.bottomFrame.columnconfigure(3, weight=1)
+
+        ################################################################################################################
+        # Plot Frame
+        self.plotFrame = Frame(self.topFrame, borderwidth=2, relief=SUNKEN)
+        self.plotFrame.pack(fill='both', expand=True)
+
+        # Matplotlib Figure
+        self.fig = mpf.figure(figsize=(7, 5), dpi=100)
+
+        # Load data
+        data = self.fl.load_plot_data('data/ohlcv_data.json')
+        pdata = self.data_reformater(data)
+
+        # Create plots and plot data
+        self.plot1 = self.fig.add_subplot(211)
+        self.plot2 = self.fig.add_subplot(212, sharex=self.plot1)
+        mpf.plot(pdata, axtitle=self.title, type=self.type, ax=self.plot1, volume=self.plot2, style=self.style)
+        # self.fig.tight_layout()
+        self.fig.subplots_adjust(hspace=.0)
+
+        # Creating the Tkinter canvas containing the Matplotlib figure
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self.plotFrame)
+        self.canvas.draw()
+        self.canvas.get_tk_widget().pack(fill='both', expand=True)
+
+        # Creating the Matplotlib toolbar
+        toolbar = NavigationToolbar2Tk(self.canvas, self.plotFrame, pack_toolbar=False)
+        toolbar.update()
+        toolbar.pack()  # fill='both', expand=True
+
+        ################################################################################################################
+        # My Trades Frame
+        self.tradesFrame = Frame(self.middleFrame, borderwidth=2, relief=SUNKEN)
+        self.tradesFrame.grid(row=0, column=1, sticky=N + E + S + W, padx=5, pady=5)
+        self.tradesFrame.rowconfigure(0, weight=1)
+        self.tradesFrame.rowconfigure(1, weight=1)
+        self.tradesFrame.rowconfigure(2, weight=1)
+        self.tradesFrame.rowconfigure(3, weight=1)
+        self.tradesFrame.rowconfigure(4, weight=1)
+        self.tradesFrame.rowconfigure(5, weight=1)
+        self.tradesFrame.columnconfigure(0, weight=1)
+        self.tradesFrame.columnconfigure(1, weight=1)
+        # self.tradesFrame.columnconfigure(2, weight=1)
+        # self.tradesFrame.columnconfigure(3, weight=1)
+
+        # Labels
+        self.tl0 = Label(self.tradesFrame, text='Get Trade History', justify="center", font=self.font_header)
+        self.tl0.grid(row=0, column=0, columnspan=4, sticky=N + E + S + W)
+        self.tl1 = Label(self.tradesFrame, text='File Path*:', justify="center", font=self.font)
+        self.tl1.grid(row=1, column=0, sticky=N + E + S + W)
+        self.tl2 = Label(self.tradesFrame, text='Trading Pair:', justify="center", font=self.font)
+        self.tl2.grid(row=2, column=0, sticky=N + E + S + W)
+        self.tl3 = Label(self.tradesFrame, text='Since (UNIX time):', justify="center", font=self.font)
+        self.tl3.grid(row=3, column=0, sticky=N + E + S + W)
+        self.tl4 = Label(self.tradesFrame, text='Limit (Data Points):', justify="center", font=self.font)
+        self.tl4.grid(row=4, column=0, sticky=N + E + S + W)
+
+        # Dropdown Menu
+        self.menu0 = StringVar()
+        self.menu0.set("Select a trading pair")
+        self.td1 = OptionMenu(self.tradesFrame, self.menu0, *self.ndax.fetch_trading_pairs())
+        self.td1.config(font=self.font)
+        menu = self.tradesFrame.nametowidget(self.td1.menuname)
+        menu.config(font=self.font)
+        self.td1.grid(row=2, column=1, sticky=N + E + S + W)
+
+        # Entries
+        self.te1 = Entry(self.tradesFrame, font=self.font)
+        self.te1.insert(0, 'data/accounts/trades.json')
+        self.te1.grid(row=1, column=1, sticky=N + E + S + W)
+        self.te2 = Entry(self.tradesFrame, font=self.font)
+        self.te2.grid(row=3, column=1, sticky=N + E + S + W)
+        self.te3 = Entry(self.tradesFrame, font=self.font)
+        self.te3.grid(row=4, column=1, sticky=N + E + S + W)
+
+        # Buttons
+        Button(self.tradesFrame, text='Get Trades', command=self.trades_callback, font=self.font) \
+            .grid(row=5, column=0, columnspan=2, sticky=N + E + S + W)
 
         ################################################################################################################
         # OHLC(V) Frame
-        self.ohlcvFrame = Frame(self.bottomFrame, borderwidth=2, relief=SUNKEN)
-        self.ohlcvFrame.grid(row=0, column=0, sticky=N+E+S+W, padx=5, pady=5)
+        self.ohlcvFrame = Frame(self.middleFrame, borderwidth=2, relief=SUNKEN)
+        self.ohlcvFrame.grid(row=0, column=1, sticky=N+E+S+W, padx=5, pady=5)
         self.ohlcvFrame.rowconfigure(0, weight=1)
         self.ohlcvFrame.rowconfigure(1, weight=1)
         self.ohlcvFrame.rowconfigure(2, weight=1)
@@ -207,8 +291,8 @@ class GUI:
 
         ################################################################################################################
         # Grid Frame
-        self.gridFrame = Frame(self.bottomFrame, borderwidth=2, relief=SUNKEN)
-        self.gridFrame.grid(row=0, column=1, sticky=N+E+S+W, padx=5, pady=5)
+        self.gridFrame = Frame(self.middleFrame, borderwidth=2, relief=SUNKEN)
+        self.gridFrame.grid(row=0, column=2, sticky=N+E+S+W, padx=5, pady=5)
         self.gridFrame.rowconfigure(0, weight=1)
         self.gridFrame.rowconfigure(1, weight=1)
         self.gridFrame.rowconfigure(2, weight=1)
@@ -265,7 +349,7 @@ class GUI:
         ################################################################################################################
         # Simulation Frame
         self.simulationFrame = Frame(self.bottomFrame, borderwidth=2, relief=SUNKEN)
-        self.simulationFrame.grid(row=0, column=2, sticky=N+E+S+W, padx=5, pady=5)
+        self.simulationFrame.grid(row=0, column=0, sticky=N+E+S+W, padx=5, pady=5)
         self.simulationFrame.rowconfigure(0, weight=1)
         self.simulationFrame.rowconfigure(1, weight=1)
         self.simulationFrame.rowconfigure(2, weight=1)
@@ -320,7 +404,7 @@ class GUI:
         ################################################################################################################
         # Live Frame
         self.liveFrame = Frame(self.bottomFrame, borderwidth=2, relief=SUNKEN)
-        self.liveFrame.grid(row=0, column=3, sticky=N+E+S+W, padx=5, pady=5)
+        self.liveFrame.grid(row=0, column=1, sticky=N+E+S+W, padx=5, pady=5)
         self.liveFrame.rowconfigure(0, weight=1)
         self.liveFrame.rowconfigure(1, weight=1)
         self.liveFrame.rowconfigure(2, weight=1)
@@ -370,35 +454,6 @@ class GUI:
                          font=self.font)
         self.b3.grid(row=4, column=1, sticky=N+E+S+W)
 
-        ################################################################################################################
-        # Plot Frame
-        self.plotFrame = Frame(self.topFrame, borderwidth=2, relief=SUNKEN)
-        self.plotFrame.pack(fill='both', expand=True)
-
-        # Matplotlib Figure
-        self.fig = mpf.figure(figsize=(7, 5), dpi=100)
-
-        # Load data
-        data = self.fl.load_plot_data('data/ohlcv_data.json')
-        pdata = self.data_reformater(data)
-
-        # Create plots and plot data
-        self.plot1 = self.fig.add_subplot(211)
-        self.plot2 = self.fig.add_subplot(212, sharex=self.plot1)
-        mpf.plot(pdata, axtitle=self.title, type=self.type, ax=self.plot1, volume=self.plot2, style=self.style)
-        # self.fig.tight_layout()
-        self.fig.subplots_adjust(hspace=.0)
-
-        # Creating the Tkinter canvas containing the Matplotlib figure
-        self.canvas = FigureCanvasTkAgg(self.fig, master=self.plotFrame)
-        self.canvas.draw()
-        self.canvas.get_tk_widget().pack(fill='both', expand=True)
-
-        # Creating the Matplotlib toolbar
-        toolbar = NavigationToolbar2Tk(self.canvas, self.plotFrame, pack_toolbar=False)
-        toolbar.update()
-        toolbar.pack()  # fill='both', expand=True
-
     ####################################################################################################################
     # General Callbacks
     def exit_callback(self):
@@ -435,7 +490,7 @@ class GUI:
         self.ndax.fetch_markets()
 
     def my_trades_callback(self):
-        self.ndax.fetch_my_trades()
+        self.ndax.fetch_all_my_trades()
 
     def orders_callback(self):
         self.ndax.fetch_orders()
@@ -497,6 +552,21 @@ class GUI:
                 self.plot1.axhline(y=s, color='b', linestyle='--', linewidth=0.5)
         mpf.plot(pdata, axtitle=self.title, type=self.type, ax=self.plot1, volume=self.plot2, style=self.style)
         self.canvas.draw()
+
+    ####################################################################################################################
+    # Trades Button Callback
+    def trades_callback(self):
+        file_path = self.te1.get()
+        pair = self.menu0.get()
+        if self.te2.get() == '':
+            since = None
+        else:
+            since = int(self.te2.get())
+        if self.te3.get() == '':
+            limit = None
+        else:
+            limit = int(self.te3.get())
+        self.ndax.fetch_my_trades(file_path=file_path, pair=pair, since=since, limit=limit)
 
     ####################################################################################################################
     # OHLC(V) Button Callback
