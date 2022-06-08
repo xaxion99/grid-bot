@@ -58,7 +58,7 @@ class GUI:
         account_menu.add_command(label="Deposits", command=self.deposits_callback, font=self.font)
         account_menu.add_command(label="Withdrawals", command=self.withdrawals_callback, font=self.font)
         account_menu.add_command(label="Ledger", command=self.ledger_callback, font=self.font)
-        account_menu.add_command(label="My Trade History", command=self.my_trades_callback, font=self.font)
+        account_menu.add_command(label="All My Trade History", command=self.my_trades_callback, font=self.font)
         menu.add_cascade(label="Account", menu=account_menu, font=self.font_header)
 
         # Order Menu
@@ -160,7 +160,7 @@ class GUI:
         ################################################################################################################
         # My Trades Frame
         self.tradesFrame = Frame(self.middleFrame, borderwidth=2, relief=SUNKEN)
-        self.tradesFrame.grid(row=0, column=1, sticky=N + E + S + W, padx=5, pady=5)
+        self.tradesFrame.grid(row=0, column=0, sticky=N + E + S + W, padx=5, pady=5)
         self.tradesFrame.rowconfigure(0, weight=1)
         self.tradesFrame.rowconfigure(1, weight=1)
         self.tradesFrame.rowconfigure(2, weight=1)
@@ -175,7 +175,7 @@ class GUI:
         # Labels
         self.tl0 = Label(self.tradesFrame, text='Get Trade History', justify="center", font=self.font_header)
         self.tl0.grid(row=0, column=0, columnspan=4, sticky=N + E + S + W)
-        self.tl1 = Label(self.tradesFrame, text='File Path*:', justify="center", font=self.font)
+        self.tl1 = Label(self.tradesFrame, text='Output File Path*:', justify="center", font=self.font)
         self.tl1.grid(row=1, column=0, sticky=N + E + S + W)
         self.tl2 = Label(self.tradesFrame, text='Trading Pair:', justify="center", font=self.font)
         self.tl2.grid(row=2, column=0, sticky=N + E + S + W)
@@ -225,7 +225,7 @@ class GUI:
         # Labels
         self.ol0 = Label(self.ohlcvFrame, text='OHLC(V) Historical Data', justify="center", font=self.font_header)
         self.ol0.grid(row=0, column=0, columnspan=4, sticky=N+E+S+W)
-        self.ol1 = Label(self.ohlcvFrame, text='File Path*:', justify="center", font=self.font)
+        self.ol1 = Label(self.ohlcvFrame, text='Output File Path*:', justify="center", font=self.font)
         self.ol1.grid(row=1, column=0, sticky=N+E+S+W)
         self.ol2 = Label(self.ohlcvFrame, text='Trading Pair*:', justify="center", font=self.font)
         self.ol2.grid(row=2, column=0, sticky=N+E+S+W)
@@ -369,7 +369,7 @@ class GUI:
         self.sl3.grid(row=2, column=0, sticky=N+E+S+W)
         self.sl4 = Label(self.simulationFrame, text='Fiat (Default: 100):', justify="center", font=self.font)
         self.sl4.grid(row=3, column=0, sticky=N+E+S+W)
-        self.sl5 = Label(self.simulationFrame, text='File Path*:', justify="center", font=self.font)
+        self.sl5 = Label(self.simulationFrame, text='Input File Path*:', justify="center", font=self.font)
         self.sl5.grid(row=4, column=0, sticky=N+E+S+W)
 
         # Entries
@@ -566,7 +566,7 @@ class GUI:
             limit = None
         else:
             limit = int(self.te3.get())
-        self.ndax.fetch_my_trades(file_path=file_path, pair=pair, since=since, limit=limit)
+        self.ndax.fetch_my_trades(file_path=file_path, symbol=pair, since=since, limit=limit)
 
     ####################################################################################################################
     # OHLC(V) Button Callback
