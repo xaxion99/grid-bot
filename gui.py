@@ -23,7 +23,7 @@ class GUI:
         self.fl = FileLoader()
         self.grid = None
         self.live_thread = None
-        self.market_strategies = ['Ranging', 'Trending']
+        self.market_strategies = ['Ranging', 'Trending', 'Traditional Ranging', 'Traditional Trending']
         self.types_array = ['candle', 'line', 'ohlc']  # , 'pnf', 'renko'
         self.time_frames = ['1m', '5m', '15m', '30m', '1h', '2h', '4h', '6h', '12h', '1d', '1w', '1M', '4M']
         self.prices = ['ask', 'average', 'bid', 'calculated mid', 'close', 'high', 'last', 'low', 'open', 'vwap']

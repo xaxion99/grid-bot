@@ -157,6 +157,8 @@ class Strategy:
         buys = 0
         holds = 0
         sells = 0
+        ups = 0
+        downs = 0
 
         # Get ticker data
         current_ticker = self.ndax.fetch_ticker(tp)
@@ -184,47 +186,96 @@ class Strategy:
         else:
             ohlcv = self.ndax.fetch_ohlcv('data/live/live_ohlcv_data.json', tp, '1m', since=None, limit=count)
         settings.ohlcv_data = ohlcv
-        # settings.ticker_data.append([current_ticker['timestamp'], current_ticker['open'], current_ticker['high'],
-        #                              current_ticker['low'], current_ticker['close'],
-        #                              float(current_ticker['info']['Volume'])])
 
         # Check grid
         if market == 'Ranging':
             res = self.range_grid(id=count, price=p, cash=cash, coins=coins, fee_cash=fee_cash, fee_coin=fee_coin)
         elif market == 'Trending':
             res = self.trend_grid(id=count, price=p, cash=cash, coins=coins, fee_cash=fee_cash, fee_coin=fee_coin)
+        elif market == 'Traditional Ranging' or market == 'Traditional Trending':
+            res = self.trad_grid(id=count, price=p, cash=cash, coins=coins)
 
-        # Set return data
-        cash = res[0]['cash']
-        coins = res[0]['coins']
-        if res[0]['fee_cash'] != 'None':
-            fee_cash = res[0]['fee_cash']
-        if res[0]['fee_coin'] != 'None':
-            fee_coin = res[0]['fee_coin']
-        if res[0]['type'] == 'buy':
-            buys += 1
-            self.ndax.create_order(symbol=tp, type='limit', side='buy', amount=self.grid.get_coins_per_interval(), price=px)  # , price=p3
-        elif res[0]['type'] == 'sell':
-            sells += 1
-            self.ndax.create_order(symbol=tp, type='limit', side='sell', amount=self.grid.get_coins_per_interval(), price=px)  # , price=p3
-        elif res[0]['type'] == 'hold':
-            holds += 1
-        elif res[0]['type'] == 'break':
-            return res[0]['current_state']  # return 'break' if the grid received a break command
-        settings.trading_stats.append({
-            'id': count,
-            'cash': cash,
-            'coins': coins,
-            'fee_cash': fee_cash,
-            'fee_coin': fee_coin,
-            'buys': buys,
-            'sells': sells,
-            'holds': holds,
-            'bid': p1,
-            'ask': p2,
-            'vwap': p3,
-            'calc_mid': px
-        })
+        if market == 'Ranging' or market == 'Trending':
+            # Set return data
+            cash = res[0]['cash']
+            coins = res[0]['coins']
+            if res[0]['fee_cash'] != 'None':
+                fee_cash = res[0]['fee_cash']
+            if res[0]['fee_coin'] != 'None':
+                fee_coin = res[0]['fee_coin']
+            if res[0]['type'] == 'buy':
+                buys += 1
+                self.ndax.create_order(symbol=tp, type='limit', side='buy', amount=self.grid.get_coins_per_interval(),
+                                       price=px)  # , price=p3
+            elif res[0]['type'] == 'sell':
+                sells += 1
+                self.ndax.create_order(symbol=tp, type='limit', side='sell', amount=self.grid.get_coins_per_interval(),
+                                       price=px)  # , price=p3
+            elif res[0]['type'] == 'hold':
+                holds += 1
+            elif res[0]['type'] == 'break':
+                return res[0]['current_state']  # return 'break' if the grid received a break command
+            settings.trading_stats.append({
+                'id': count,
+                'cash': cash,
+                'coins': coins,
+                'fee_cash': fee_cash,
+                'fee_coin': fee_coin,
+                'buys': buys,
+                'sells': sells,
+                'holds': holds,
+                'bid': p1,
+                'ask': p2,
+                'vwap': p3,
+                'calc_mid': px
+            })
+        elif market == 'Traditional Ranging' or market == 'Traditional Trending':
+            if market == 'Traditional Ranging':
+                if res[0]['type'] == 'down':
+                    downs += 1
+                    self.ndax.create_order(symbol=tp, type='limit', side='buy', amount=self.grid.get_coins_per_interval(),
+                                           price=res[0]['below'])
+                    self.ndax.create_order(symbol=tp, type='limit', side='sell', amount=self.grid.get_coins_per_interval(),
+                                           price=res[0]['above'])
+                elif res[0]['type'] == 'up':
+                    ups += 1
+                    self.ndax.create_order(symbol=tp, type='limit', side='buy', amount=self.grid.get_coins_per_interval(),
+                                           price=res[0]['below'])
+                    self.ndax.create_order(symbol=tp, type='limit', side='sell', amount=self.grid.get_coins_per_interval(),
+                                           price=res[0]['above'])
+                elif res[0]['type'] == 'hold':
+                    holds += 1
+                elif res[0]['type'] == 'break':
+                    return res[0]['current_state']  # return 'break' if the grid received a break command
+            elif market == 'Traditional Trending':
+                if res[0]['type'] == 'down':
+                    downs += 1
+                    self.ndax.create_order(symbol=tp, type='limit', side='sell', amount=self.grid.get_coins_per_interval(),
+                                           price=res[0]['below'])
+                    self.ndax.create_order(symbol=tp, type='limit', side='buy', amount=self.grid.get_coins_per_interval(),
+                                           price=res[0]['above'])
+                elif res[0]['type'] == 'up':
+                    ups += 1
+                    self.ndax.create_order(symbol=tp, type='limit', side='sell', amount=self.grid.get_coins_per_interval(),
+                                           price=res[0]['below'])
+                    self.ndax.create_order(symbol=tp, type='limit', side='buy', amount=self.grid.get_coins_per_interval(),
+                                           price=res[0]['above'])
+                elif res[0]['type'] == 'hold':
+                    holds += 1
+                elif res[0]['type'] == 'break':
+                    return res[0]['current_state']  # return 'break' if the grid received a break command
+            settings.trading_stats.append({
+                'id': count,
+                'cash': cash,
+                'coins': coins,
+                'ups': ups,
+                'downs': downs,
+                'holds': holds,
+                'bid': p1,
+                'ask': p2,
+                'vwap': p3,
+                'calc_mid': px
+            })
         self.fl.save_data(settings.trading_stats, 'data/live/trading_stats.json')
         return current_ticker
 
@@ -392,5 +443,96 @@ class Strategy:
                 'next_state': self.states[self.state]
             })
         with open('data/live/live_log.txt', 'a') as f:
+            print(result, file=f)
+        return result
+
+    ####################################################################################################################
+    # Traditional range grid function
+    def trad_grid(self, id, price, cash, coins):
+        result = []
+        amount = float(price) * self.coins_per_interval
+        for v in self.states.values():
+            if (float(price) >= v) and (float(price) < (v + self.amount_per_intervals)):
+                self.last_state = self.states[self.state]
+                self.state = self.grid.get_key(v)
+                break
+        c_state = self.states[self.state]
+        if float(price) < self.states[0]:
+            above = self.states[0]
+            below = None
+            result.append({
+                'id': id,
+                'amount': float(price),
+                'type': 'break',
+                'coins': coins,
+                'cash': cash,
+                'last_state': 'Low Safe',
+                'current_state': 'None',
+                'above': above,
+                'below': below
+            })
+        elif float(price) > self.states[self.num_of_intervals]:
+            above = None
+            below = self.states[self.num_of_intervals]
+            result.append({
+                'id': id,
+                'amount': float(price),
+                'type': 'break',
+                'coins': coins,
+                'cash': cash,
+                'last_state': 'High Safe',
+                'current_state': 'None',
+                'above': above,
+                'below': below
+            })
+        elif float(price) >= self.last_state and coins >= self.coins_per_interval and c_state != self.last_state:
+            if self.state + 1 <= self.num_of_intervals:
+                above = self.states[self.state + 1]
+            else:
+                above = self.states[self.state]
+            below = self.states[self.state - 1]
+            result.append({
+                'id': id,
+                'amount': float(price),
+                'type': 'up',
+                'coins': coins,
+                'cash': cash,
+                'last_state': self.last_state,
+                'current_state': self.states[self.state],
+                'above': above,
+                'below': below
+            })
+        elif float(price) < self.last_state and cash >= amount and c_state != self.last_state:
+            above = self.states[self.state + 1]
+            if self.state - 1 >= 0:
+                below = self.states[self.state - 1]
+            else:
+                below = self.states[self.state]
+            result.append({
+                'id': id,
+                'amount': float(price),
+                'type': 'down',
+                'coins': coins,
+                'cash': cash,
+                'last_state': self.last_state,
+                'current_state': self.states[self.state],
+                'above': above,
+                'below': below
+            })
+        else:
+            above = self.states[self.state + 1]
+            below = self.states[self.state - 1]
+            result.append({
+                'id': id,
+                'amount': float(price),
+                'type': 'hold',
+                'coins': coins,
+                'cash': cash,
+                'last_state': self.last_state,
+                'current_state': self.states[self.state],
+                'above': above,
+                'below': below
+            })
+        with open('data/live/trad_live_log.txt', 'a') as f:
             print(result, file=f)
         return result
