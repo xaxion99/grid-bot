@@ -35,4 +35,4 @@ class LiveThread(threading.Thread):
             else:
                 self.arr.append(res)
                 self.fl.save_data(self.arr, 'data/live/ticker.json')
-                time.sleep(58)
+                time.sleep(57)

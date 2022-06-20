@@ -10,6 +10,10 @@ class Test:
         self.ndax = xc
 
     def test(self):
+        res = self.ndax.create_order(symbol='DOGE/CAD', type='stopLimit', side='buy', amount=10, price=0.01, stopprice=0.1)
+        print(res)
+
+    def test_trad_grid(self):
         g = GridTrade(10, 0.095, 0.105, 200, 8, self.ndax)
         s = Strategy(g, self.ndax)
         t = []

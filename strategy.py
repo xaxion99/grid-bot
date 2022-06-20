@@ -19,6 +19,8 @@ class Strategy:
         self.max_val = self.grid.get_max_val()
         self.fee_rate = self.grid.get_fee_rate()
         self.tolerance = self.grid.get_tolerance()
+        self.prev_below = 0
+        self.prev_above = 0
         self.fl = FileLoader()
         self.ndax = exchange
 
@@ -166,7 +168,7 @@ class Strategy:
             p = (current_ticker['ask'] + current_ticker['bid']) / 2
         else:
             p = current_ticker[price]
-        px = (current_ticker['ask'] + current_ticker['bid']) / 2
+        px = round((current_ticker['ask'] + current_ticker['bid']) / 2, 8)
         p1 = current_ticker['bid']
         p2 = current_ticker['ask']
         p3 = current_ticker['vwap']
@@ -192,7 +194,7 @@ class Strategy:
             res = self.range_grid(id=count, price=p, cash=cash, coins=coins, fee_cash=fee_cash, fee_coin=fee_coin)
         elif market == 'Trending':
             res = self.trend_grid(id=count, price=p, cash=cash, coins=coins, fee_cash=fee_cash, fee_coin=fee_coin)
-        elif market == 'Traditional Ranging' or market == 'Traditional Trending':
+        else:
             res = self.trad_grid(id=count, price=p, cash=cash, coins=coins)
 
         if market == 'Ranging' or market == 'Trending':
@@ -233,12 +235,14 @@ class Strategy:
             if market == 'Traditional Ranging':
                 if res[0]['type'] == 'down':
                     downs += 1
+                    self.ndax.cancel_all_orders()
                     self.ndax.create_order(symbol=tp, type='limit', side='buy', amount=self.grid.get_coins_per_interval(),
                                            price=res[0]['below'])
                     self.ndax.create_order(symbol=tp, type='limit', side='sell', amount=self.grid.get_coins_per_interval(),
                                            price=res[0]['above'])
                 elif res[0]['type'] == 'up':
                     ups += 1
+                    self.ndax.cancel_all_orders()
                     self.ndax.create_order(symbol=tp, type='limit', side='buy', amount=self.grid.get_coins_per_interval(),
                                            price=res[0]['below'])
                     self.ndax.create_order(symbol=tp, type='limit', side='sell', amount=self.grid.get_coins_per_interval(),
@@ -246,24 +250,44 @@ class Strategy:
                 elif res[0]['type'] == 'hold':
                     holds += 1
                 elif res[0]['type'] == 'break':
-                    return res[0]['current_state']  # return 'break' if the grid received a break command
+                    return res[0]['last_state']  # return 'break' if the grid received a break command
             elif market == 'Traditional Trending':
+                ct = self.ndax.fetch_ticker(tp)
                 if res[0]['type'] == 'down':
                     downs += 1
-                    self.ndax.create_order(symbol=tp, type='limit', side='sell', amount=self.grid.get_coins_per_interval(),
-                                           price=res[0]['below'])
-                    self.ndax.create_order(symbol=tp, type='limit', side='buy', amount=self.grid.get_coins_per_interval(),
-                                           price=res[0]['above'])
+                    self.ndax.create_order(symbol=tp, type='stopLimit', side='sell',
+                                           amount=self.grid.get_coins_per_interval(), price=res[0]['below'],
+                                           stopprice=res[0]['below'])
+                    self.ndax.create_order(symbol=tp, type='limit', side='buy',
+                                           amount=self.grid.get_coins_per_interval(), price=res[0]['above'])
+                    # if ct['ask'] < res[0]['above']:
+                    #     self.ndax.create_order(symbol=tp, type='limit', side='buy',
+                    #                            amount=self.grid.get_coins_per_interval(), price=ct['ask'])
+                    # else:
+                    #     self.ndax.create_order(symbol=tp, type='stopLimit', side='buy',
+                    #                            amount=self.grid.get_coins_per_interval(), price=res[0]['above'],
+                    #                            stopprice=res[0]['above'])
+                    # self.ndax.create_order(symbol=tp, type='stopLimit', side='buy',
+                    #                        amount=self.grid.get_coins_per_interval(), price=res[0]['above'],
+                    #                        stopprice=res[0]['above'])
                 elif res[0]['type'] == 'up':
                     ups += 1
-                    self.ndax.create_order(symbol=tp, type='limit', side='sell', amount=self.grid.get_coins_per_interval(),
-                                           price=res[0]['below'])
-                    self.ndax.create_order(symbol=tp, type='limit', side='buy', amount=self.grid.get_coins_per_interval(),
-                                           price=res[0]['above'])
+                    self.ndax.create_order(symbol=tp, type='stopLimit', side='sell',
+                                           amount=self.grid.get_coins_per_interval(), price=res[0]['below'],
+                                           stopprice=res[0]['below'])
+                    self.ndax.create_order(symbol=tp, type='limit', side='buy',
+                                           amount=self.grid.get_coins_per_interval(), price=res[0]['above'])
+                    # if ct['ask'] < res[0]['above']:
+                    #     self.ndax.create_order(symbol=tp, type='limit', side='buy',
+                    #                            amount=self.grid.get_coins_per_interval(), price=ct['ask'])
+                    # else:
+                    #     self.ndax.create_order(symbol=tp, type='stopLimit', side='buy',
+                    #                            amount=self.grid.get_coins_per_interval(), price=res[0]['above'],
+                    #                            stopprice=res[0]['above'])
                 elif res[0]['type'] == 'hold':
                     holds += 1
                 elif res[0]['type'] == 'break':
-                    return res[0]['current_state']  # return 'break' if the grid received a break command
+                    return res[0]['last_state']  # return 'break' if the grid received a break command
             settings.trading_stats.append({
                 'id': count,
                 'cash': cash,
@@ -278,6 +302,16 @@ class Strategy:
             })
         self.fl.save_data(settings.trading_stats, 'data/live/trading_stats.json')
         return current_ticker
+
+    # Helper function to cancel offsetting Buys and Sells to free the capital for trading
+    def cancel_conflicting_orders(self):
+        open_orders = self.ndax.fetch_open_orders
+        prices = []
+        types = []
+        for o in open_orders:
+            prices.append(o['price'])
+            types.append(o['side'])
+        # Check for conflicting Buys and Sells from the two arrays
 
     ####################################################################################################################
     # Generalized range grid function
@@ -456,7 +490,8 @@ class Strategy:
                 self.last_state = self.states[self.state]
                 self.state = self.grid.get_key(v)
                 break
-        c_state = self.states[self.state]
+
+        # Check grid
         if float(price) < self.states[0]:
             above = self.states[0]
             below = None
@@ -485,12 +520,15 @@ class Strategy:
                 'above': above,
                 'below': below
             })
-        elif float(price) >= self.last_state and coins >= self.coins_per_interval and c_state != self.last_state:
+        elif float(price) >= self.prev_above and coins >= self.coins_per_interval and cash >= amount:
             if self.state + 1 <= self.num_of_intervals:
                 above = self.states[self.state + 1]
             else:
                 above = self.states[self.state]
-            below = self.states[self.state - 1]
+            if self.state - 1 >= 0:
+                below = self.states[self.state - 1]
+            else:
+                below = self.states[self.state]
             result.append({
                 'id': id,
                 'amount': float(price),
@@ -499,11 +537,18 @@ class Strategy:
                 'cash': cash,
                 'last_state': self.last_state,
                 'current_state': self.states[self.state],
+                'prev_above': self.prev_above,
+                'prev_below': self.prev_below,
                 'above': above,
                 'below': below
             })
-        elif float(price) < self.last_state and cash >= amount and c_state != self.last_state:
-            above = self.states[self.state + 1]
+            self.prev_below = below
+            self.prev_above = above
+        elif float(price) < self.prev_below and coins >= self.coins_per_interval and cash >= amount:
+            if self.state + 1 <= self.num_of_intervals:
+                above = self.states[self.state + 1]
+            else:
+                above = self.states[self.state]
             if self.state - 1 >= 0:
                 below = self.states[self.state - 1]
             else:
@@ -516,12 +561,22 @@ class Strategy:
                 'cash': cash,
                 'last_state': self.last_state,
                 'current_state': self.states[self.state],
+                'prev_above': self.prev_above,
+                'prev_below': self.prev_below,
                 'above': above,
                 'below': below
             })
+            self.prev_below = below
+            self.prev_above = above
         else:
-            above = self.states[self.state + 1]
-            below = self.states[self.state - 1]
+            if self.state + 1 <= self.num_of_intervals:
+                above = self.states[self.state + 1]
+            else:
+                above = self.states[self.state]
+            if self.state - 1 >= 0:
+                below = self.states[self.state - 1]
+            else:
+                below = self.states[self.state]
             result.append({
                 'id': id,
                 'amount': float(price),
